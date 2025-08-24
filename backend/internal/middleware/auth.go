@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -200,24 +201,27 @@ func (m *AuthMiddleware) shouldSkipAuth(tr transport.Transporter) bool {
 func (m *AuthMiddleware) extractToken(tr transport.Transporter) string {
 	var token string
 
-	// HTTP请求
-	if ht, ok := tr.(interface{ RequestHeader() map[string][]string }); ok {
-		header := ht.RequestHeader()
-		if auths := header["Authorization"]; len(auths) > 0 {
-			auth := auths[0]
-			if strings.HasPrefix(auth, "Bearer ") {
-				token = strings.TrimPrefix(auth, "Bearer ")
-			}
-		}
-	}
-
-	// gRPC请求
-	if gt, ok := tr.(interface{ RequestHeader() map[string][]string }); ok {
-		header := gt.RequestHeader()
-		if auths := header["authorization"]; len(auths) > 0 {
-			auth := auths[0]
-			if strings.HasPrefix(auth, "Bearer ") {
-				token = strings.TrimPrefix(auth, "Bearer ")
+	// 使用反射安全地检查方法是否存在
+	if headerMethod := reflect.ValueOf(tr).MethodByName("RequestHeader"); headerMethod.IsValid() {
+		results := headerMethod.Call(nil)
+		if len(results) > 0 {
+			if headerMap, ok := results[0].Interface().(map[string][]string); ok {
+				// 先尝试HTTP标准的Authorization头
+				if auths := headerMap["Authorization"]; len(auths) > 0 {
+					auth := auths[0]
+					if strings.HasPrefix(auth, "Bearer ") {
+						token = strings.TrimPrefix(auth, "Bearer ")
+						return token
+					}
+				}
+				// 再尝试gRPC小写的authorization头
+				if auths := headerMap["authorization"]; len(auths) > 0 {
+					auth := auths[0]
+					if strings.HasPrefix(auth, "Bearer ") {
+						token = strings.TrimPrefix(auth, "Bearer ")
+						return token
+					}
+				}
 			}
 		}
 	}

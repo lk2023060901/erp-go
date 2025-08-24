@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -124,18 +123,20 @@ func TestPermissionRulesCache(t *testing.T) {
 	docType := "User"
 	rules := []*biz.PermissionRule{
 		{
-			ID:         1,
-			RoleID:     roleID,
-			DocType:    docType,
-			Permission: "read",
-			Rule:       "user == owner",
+			ID:              1,
+			RoleID:          roleID,
+			DocType:         docType,
+			PermissionLevel: 0,
+			CanRead:         true,
+			CanWrite:        false,
 		},
 		{
-			ID:         2,
-			RoleID:     roleID,
-			DocType:    docType,
-			Permission: "write",
-			Rule:       "user.department == doc.department",
+			ID:              2,
+			RoleID:          roleID,
+			DocType:         docType,
+			PermissionLevel: 0,
+			CanRead:         true,
+			CanWrite:        true,
 		},
 	}
 	ttl := 15 * time.Minute
@@ -148,8 +149,8 @@ func TestPermissionRulesCache(t *testing.T) {
 	result, err := cache.GetPermissionRules(ctx, roleID, docType)
 	assert.NoError(t, err)
 	assert.Len(t, result, 2)
-	assert.Equal(t, rules[0].Permission, result[0].Permission)
-	assert.Equal(t, rules[1].Rule, result[1].Rule)
+	assert.Equal(t, rules[0].CanRead, result[0].CanRead)
+	assert.Equal(t, rules[1].CanWrite, result[1].CanWrite)
 
 	// 测试删除权限规则
 	err = cache.DeletePermissionRules(ctx, roleID, docType)
@@ -241,20 +242,11 @@ func TestDocTypeCache(t *testing.T) {
 	docType := &biz.DocType{
 		ID:          1,
 		Name:        name,
-		DisplayName: "Test Document Type",
+		Label:       "Test Document Type",
 		Description: "Test description",
-		Fields: []biz.DocField{
-			{
-				Name:        "title",
-				DisplayName: "Title",
-				Type:        "string",
-				Required:    true,
-				ReadLevel:   1,
-				WriteLevel:  2,
-			},
-		},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Module:      "TestModule",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 	ttl := 25 * time.Minute
 
@@ -267,9 +259,8 @@ func TestDocTypeCache(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, docType.Name, result.Name)
-	assert.Equal(t, docType.DisplayName, result.DisplayName)
-	assert.Len(t, result.Fields, 1)
-	assert.Equal(t, "title", result.Fields[0].Name)
+	assert.Equal(t, docType.Label, result.Label)
+	assert.Equal(t, docType.Module, result.Module)
 
 	// 测试删除文档类型
 	err = cache.DeleteDocType(ctx, name)
