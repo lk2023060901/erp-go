@@ -58,7 +58,7 @@ const Register: React.FC = () => {
       { test: /[A-Z]/, message: '密码必须包含大写字母' },
       { test: /[a-z]/, message: '密码必须包含小写字母' },
       { test: /[0-9]/, message: '密码必须包含数字' },
-      { test: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?~]/, message: '密码必须包含特殊字符' },
+      { test: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?~]/, message: '密码必须包含特殊字符' },
     ];
 
     for (const rule of rules) {
