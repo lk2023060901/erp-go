@@ -28,7 +28,7 @@ func NewUserFilterRepo(data *Data, logger log.Logger) biz.UserFilterRepo {
 // CreateFilter 创建过滤器
 func (r *userFilterRepo) CreateFilter(ctx context.Context, filter *biz.UserFilter) (*biz.UserFilter, error) {
 	var id int32
-	
+
 	conditionsJSON, err := json.Marshal(filter.FilterConditions)
 	if err != nil {
 		r.log.Errorf("failed to marshal filter conditions: %v", err)

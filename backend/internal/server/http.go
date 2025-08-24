@@ -21,15 +21,15 @@ import (
 
 // HTTPServer HTTP服务器
 type HTTPServer struct {
-	Server *khttp.Server
+	Server      *khttp.Server
 	authService *service.AuthService
 	userService *service.UserService
 	roleService *service.RoleService
 	// permissionService *service.PermissionService  // Temporarily disabled - using Frappe permission system
 	organizationService *service.OrganizationService
-	systemService *service.SystemService
-	jwtSecret   string
-	log         *log.Helper
+	systemService       *service.SystemService
+	jwtSecret           string
+	log                 *log.Helper
 }
 
 // NewHTTPServer 创建HTTP服务器
@@ -58,18 +58,18 @@ func NewHTTPServer(
 	}
 
 	srv := khttp.NewServer(opts...)
-	
-	// 创建自定义的HTTP服务器实例  
+
+	// 创建自定义的HTTP服务器实例
 	jwtSecret := "dev-jwt-secret-key-for-testing-only"
 	if data.Jwt != nil && data.Jwt.SecretKey != "" {
 		jwtSecret = data.Jwt.SecretKey
 	}
-	
+
 	httpSrv := &HTTPServer{
-		Server:              srv,
-		authService:         authService,
-		userService:         userService,
-		roleService:         roleService,
+		Server:      srv,
+		authService: authService,
+		userService: userService,
+		roleService: roleService,
 		// permissionService:   permissionService,  // Temporarily disabled
 		organizationService: organizationService,
 		systemService:       systemService,
@@ -101,12 +101,12 @@ func (s *HTTPServer) registerRoutes() {
 	authenticated := v1.NewRoute().Subrouter()
 	// 这里应该使用标准HTTP中间件，而不是Kratos中间件
 	authenticated.Use(s.jwtMiddleware)
-	
+
 	// 认证相关路由
 	authenticated.HandleFunc("/auth/logout", s.handleLogout).Methods("POST", "OPTIONS")
 	authenticated.HandleFunc("/auth/profile", s.handleGetProfile).Methods("GET", "OPTIONS")
 	authenticated.HandleFunc("/auth/change-password", s.handleChangePassword).Methods("POST", "OPTIONS")
-	
+
 	// 用户管理路由
 	users := authenticated.PathPrefix("/users").Subrouter()
 	users.HandleFunc("", s.handleListUsers).Methods("GET", "OPTIONS")
@@ -117,7 +117,7 @@ func (s *HTTPServer) registerRoutes() {
 	users.HandleFunc("/{id:[0-9]+}/roles", s.handleAssignUserRoles).Methods("POST", "OPTIONS")
 	users.HandleFunc("/{id:[0-9]+}/reset-password", s.handleResetUserPassword).Methods("POST", "OPTIONS")
 	users.HandleFunc("/{id:[0-9]+}/toggle-2fa", s.handleToggleUser2FA).Methods("POST", "OPTIONS")
-	
+
 	// 角色管理路由
 	roles := authenticated.PathPrefix("/roles").Subrouter()
 	roles.HandleFunc("", s.handleListRoles).Methods("GET", "OPTIONS")
@@ -127,7 +127,7 @@ func (s *HTTPServer) registerRoutes() {
 	roles.HandleFunc("/{id:[0-9]+}", s.handleDeleteRole).Methods("DELETE", "OPTIONS")
 	roles.HandleFunc("/{id:[0-9]+}/permissions", s.handleAssignRolePermissions).Methods("POST", "OPTIONS")
 	roles.HandleFunc("/enabled", s.handleGetEnabledRoles).Methods("GET", "OPTIONS")
-	
+
 	// 权限管理路由
 	permissions := authenticated.PathPrefix("/permissions").Subrouter()
 	permissions.HandleFunc("", s.handleListPermissions).Methods("GET", "OPTIONS")
@@ -140,7 +140,7 @@ func (s *HTTPServer) registerRoutes() {
 	permissions.HandleFunc("/sync-api", s.handleSyncApiPermissions).Methods("POST", "OPTIONS")
 	permissions.HandleFunc("/menus", s.handleGetUserMenus).Methods("GET", "OPTIONS")
 	permissions.HandleFunc("/check", s.handleCheckUserPermission).Methods("POST", "OPTIONS")
-	
+
 	// 组织管理路由
 	orgs := authenticated.PathPrefix("/organizations").Subrouter()
 	orgs.HandleFunc("", s.handleCreateOrganization).Methods("POST", "OPTIONS")
@@ -150,7 +150,7 @@ func (s *HTTPServer) registerRoutes() {
 	orgs.HandleFunc("/tree", s.handleGetOrganizationTree).Methods("GET", "OPTIONS")
 	orgs.HandleFunc("/enabled", s.handleGetEnabledOrganizations).Methods("GET", "OPTIONS")
 	orgs.HandleFunc("/{id:[0-9]+}/users", s.handleAssignOrganizationUsers).Methods("POST", "OPTIONS")
-	
+
 	// 系统管理路由
 	system := authenticated.PathPrefix("/system").Subrouter()
 	system.HandleFunc("/logs", s.handleGetOperationLogs).Methods("GET", "OPTIONS")
@@ -289,7 +289,7 @@ func (s *HTTPServer) jwtMiddleware(next http.Handler) http.Handler {
 
 		// 提取token
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		
+
 		// 解析JWT
 		token, err := jwt.ParseWithClaims(tokenString, &pkg.CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -475,4 +475,3 @@ func CorsMiddleware() func(http.Handler) http.Handler {
 		})
 	}
 }
-

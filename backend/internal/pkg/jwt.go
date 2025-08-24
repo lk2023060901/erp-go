@@ -15,13 +15,13 @@ type JWTManager struct {
 
 // CustomClaims 自定义JWT声明
 type CustomClaims struct {
-	UserID       int64    `json:"user_id"`
-	Username     string   `json:"username"`
-	Email        string   `json:"email"`
-	Roles        []string `json:"roles"`
-	Permissions  []string `json:"permissions"`
-	SessionID    string   `json:"session_id"`
-	TokenType    string   `json:"token_type"` // access, refresh
+	UserID      int64    `json:"user_id"`
+	Username    string   `json:"username"`
+	Email       string   `json:"email"`
+	Roles       []string `json:"roles"`
+	Permissions []string `json:"permissions"`
+	SessionID   string   `json:"session_id"`
+	TokenType   string   `json:"token_type"` // access, refresh
 	jwt.RegisteredClaims
 }
 

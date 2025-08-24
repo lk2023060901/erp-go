@@ -188,7 +188,7 @@ func (r *auditRepo) ListOperationLogs(ctx context.Context, req *biz.OperationLog
 // DeleteOperationLogs 删除操作日志
 func (r *auditRepo) DeleteOperationLogs(ctx context.Context, beforeTime time.Time) (int64, error) {
 	query := "DELETE FROM operation_logs WHERE created_at < $1"
-	
+
 	result, err := r.data.db.ExecContext(ctx, query, beforeTime)
 	if err != nil {
 		r.log.Errorf("failed to delete operation logs: %v", err)

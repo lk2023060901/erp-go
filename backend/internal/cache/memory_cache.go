@@ -60,7 +60,7 @@ func (c *MemoryPermissionCache) SetUserPermissions(ctx context.Context, userID i
 	if err != nil {
 		return fmt.Errorf("failed to marshal user permissions: %w", err)
 	}
-	
+
 	c.cache.Store(key, string(data))
 	return nil
 }
@@ -71,17 +71,17 @@ func (c *MemoryPermissionCache) GetUserPermissions(ctx context.Context, userID i
 	if !ok {
 		return nil, nil // 缓存未命中
 	}
-	
+
 	data, ok := value.(string)
 	if !ok {
 		return nil, fmt.Errorf("invalid cached data type for user permissions")
 	}
-	
+
 	var permissions []string
 	if err := json.Unmarshal([]byte(data), &permissions); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user permissions: %w", err)
 	}
-	
+
 	return permissions, nil
 }
 
@@ -98,7 +98,7 @@ func (c *MemoryPermissionCache) SetUserRoles(ctx context.Context, userID int64, 
 	if err != nil {
 		return fmt.Errorf("failed to marshal user roles: %w", err)
 	}
-	
+
 	c.cache.Store(key, string(data))
 	return nil
 }
@@ -109,17 +109,17 @@ func (c *MemoryPermissionCache) GetUserRoles(ctx context.Context, userID int64) 
 	if !ok {
 		return nil, nil // 缓存未命中
 	}
-	
+
 	data, ok := value.(string)
 	if !ok {
 		return nil, fmt.Errorf("invalid cached data type for user roles")
 	}
-	
+
 	var roles []string
 	if err := json.Unmarshal([]byte(data), &roles); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user roles: %w", err)
 	}
-	
+
 	return roles, nil
 }
 
@@ -136,7 +136,7 @@ func (c *MemoryPermissionCache) SetPermissionRules(ctx context.Context, roleID i
 	if err != nil {
 		return fmt.Errorf("failed to marshal permission rules: %w", err)
 	}
-	
+
 	c.cache.Store(key, string(data))
 	return nil
 }
@@ -147,17 +147,17 @@ func (c *MemoryPermissionCache) GetPermissionRules(ctx context.Context, roleID i
 	if !ok {
 		return nil, nil // 缓存未命中
 	}
-	
+
 	data, ok := value.(string)
 	if !ok {
 		return nil, fmt.Errorf("invalid cached data type for permission rules")
 	}
-	
+
 	var rules []*biz.PermissionRule
 	if err := json.Unmarshal([]byte(data), &rules); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal permission rules: %w", err)
 	}
-	
+
 	return rules, nil
 }
 
@@ -180,12 +180,12 @@ func (c *MemoryPermissionCache) GetUserPermissionLevel(ctx context.Context, user
 	if !ok {
 		return -1, nil // 缓存未命中，返回-1表示未缓存
 	}
-	
+
 	level, ok := value.(int)
 	if !ok {
 		return -1, fmt.Errorf("invalid cached data type for user permission level")
 	}
-	
+
 	return level, nil
 }
 
@@ -202,7 +202,7 @@ func (c *MemoryPermissionCache) SetFieldPermissionLevels(ctx context.Context, do
 	if err != nil {
 		return fmt.Errorf("failed to marshal field permission levels: %w", err)
 	}
-	
+
 	c.cache.Store(key, string(data))
 	return nil
 }
@@ -213,17 +213,17 @@ func (c *MemoryPermissionCache) GetFieldPermissionLevels(ctx context.Context, do
 	if !ok {
 		return nil, nil // 缓存未命中
 	}
-	
+
 	data, ok := value.(string)
 	if !ok {
 		return nil, fmt.Errorf("invalid cached data type for field permission levels")
 	}
-	
+
 	var levels map[string]int
 	if err := json.Unmarshal([]byte(data), &levels); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal field permission levels: %w", err)
 	}
-	
+
 	return levels, nil
 }
 
@@ -240,7 +240,7 @@ func (c *MemoryPermissionCache) SetDocType(ctx context.Context, name string, doc
 	if err != nil {
 		return fmt.Errorf("failed to marshal doctype: %w", err)
 	}
-	
+
 	c.cache.Store(key, string(data))
 	return nil
 }
@@ -251,17 +251,17 @@ func (c *MemoryPermissionCache) GetDocType(ctx context.Context, name string) (*b
 	if !ok {
 		return nil, nil // 缓存未命中
 	}
-	
+
 	data, ok := value.(string)
 	if !ok {
 		return nil, fmt.Errorf("invalid cached data type for doctype")
 	}
-	
+
 	var docType biz.DocType
 	if err := json.Unmarshal([]byte(data), &docType); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal doctype: %w", err)
 	}
-	
+
 	return &docType, nil
 }
 
@@ -283,7 +283,7 @@ func (c *MemoryPermissionCache) ClearUserCache(ctx context.Context, userID int64
 		}
 		return true
 	})
-	
+
 	return nil
 }
 
@@ -298,7 +298,7 @@ func (c *MemoryPermissionCache) ClearRoleCache(ctx context.Context, roleID int64
 		}
 		return true
 	})
-	
+
 	return nil
 }
 
@@ -312,7 +312,7 @@ func (c *MemoryPermissionCache) ClearDocTypeCache(ctx context.Context, docType s
 		}
 		return true
 	})
-	
+
 	return nil
 }
 
@@ -326,14 +326,14 @@ func (c *MemoryPermissionCache) ClearAllPermissionCache(ctx context.Context) err
 		}
 		return true
 	})
-	
+
 	return nil
 }
 
 // 缓存统计和监控方法
 func (c *MemoryPermissionCache) GetCacheStats(ctx context.Context) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
-	
+
 	// 统计各类缓存的数量
 	counts := map[string]int{
 		"user_permissions": 0,
@@ -342,9 +342,9 @@ func (c *MemoryPermissionCache) GetCacheStats(ctx context.Context) (map[string]i
 		"user_levels":      0,
 		"field_levels":     0,
 		"doctypes":         0,
-		"total":           0,
+		"total":            0,
 	}
-	
+
 	c.cache.Range(func(key, value interface{}) bool {
 		if k, ok := key.(string); ok {
 			counts["total"]++
@@ -365,12 +365,12 @@ func (c *MemoryPermissionCache) GetCacheStats(ctx context.Context) (map[string]i
 		}
 		return true
 	})
-	
+
 	for k, v := range counts {
 		stats[k] = v
 	}
-	
+
 	stats["cache_type"] = "memory"
-	
+
 	return stats, nil
 }

@@ -15,10 +15,10 @@ import (
 
 // AuthService 认证服务
 type AuthService struct {
-	userUc    *biz.UserUsecase
-	jwtMgr    *pkg.JWTManager
-	pwdMgr    *pkg.PasswordManager
-	log       *log.Helper
+	userUc *biz.UserUsecase
+	jwtMgr *pkg.JWTManager
+	pwdMgr *pkg.PasswordManager
+	log    *log.Helper
 }
 
 // NewAuthService 创建认证服务
@@ -100,34 +100,34 @@ type ChangePasswordRequest struct {
 
 // UserInfo 用户信息
 type UserInfo struct {
-	ID               int32     `json:"id"`
-	Username         string    `json:"username"`
-	Email            string    `json:"email"`
-	FirstName        string    `json:"first_name"`
-	LastName         string    `json:"last_name"`
-	Phone            string    `json:"phone"`
-	Gender           string    `json:"gender"`
+	ID               int32      `json:"id"`
+	Username         string     `json:"username"`
+	Email            string     `json:"email"`
+	FirstName        string     `json:"first_name"`
+	LastName         string     `json:"last_name"`
+	Phone            string     `json:"phone"`
+	Gender           string     `json:"gender"`
 	BirthDate        *time.Time `json:"birth_date"`
-	AvatarURL        string    `json:"avatar_url"`
-	IsActive         bool      `json:"is_active"`
-	TwoFactorEnabled bool      `json:"two_factor_enabled"`
-	LastLoginAt      time.Time `json:"last_login_at"`
-	CreatedAt        time.Time `json:"created_at"`
-	Roles            []string  `json:"roles"`
-	Permissions      []string  `json:"permissions"`
+	AvatarURL        string     `json:"avatar_url"`
+	IsActive         bool       `json:"is_active"`
+	TwoFactorEnabled bool       `json:"two_factor_enabled"`
+	LastLoginAt      time.Time  `json:"last_login_at"`
+	CreatedAt        time.Time  `json:"created_at"`
+	Roles            []string   `json:"roles"`
+	Permissions      []string   `json:"permissions"`
 }
 
 // ToUserInfo 将 biz.User 转换为 UserInfo
 func ToUserInfo(user *biz.User, roles []string, permissions []string) *UserInfo {
 	return &UserInfo{
-		ID:               user.ID,
-		Username:         user.Username,
-		Email:            user.Email,
-		FirstName:        user.FirstName,
-		LastName:         user.LastName,
-		Phone:            user.Phone,
-		Gender:           user.Gender,
-		BirthDate:        func() *time.Time {
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Phone:     user.Phone,
+		Gender:    user.Gender,
+		BirthDate: func() *time.Time {
 			if user.BirthDate.IsZero() {
 				return nil
 			}
@@ -178,7 +178,7 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 		if req.TwoFactorCode == "" {
 			return nil, errors.BadRequest("MISSING_2FA_CODE", "需要二次验证码")
 		}
-		
+
 		if !s.userUc.ValidateTwoFactor(ctx, user.ID, req.TwoFactorCode) {
 			s.log.Warnf("Invalid 2FA code for user: %s", req.Username)
 			return nil, errors.Unauthorized("INVALID_2FA_CODE", "二次验证码错误")
@@ -235,7 +235,7 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 	}
 
 	// TODO: 保存会话信息到Redis
-	
+
 	s.log.Infof("User login successful: %s", req.Username)
 
 	return &LoginResponse{
@@ -243,7 +243,7 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 		RefreshToken: refreshToken,
 		ExpiresIn:    int64(tokenDuration.Seconds()),
 		TokenType:    "Bearer",
-		User: ToUserInfo(user, roleStrs, permissions),
+		User:         ToUserInfo(user, roleStrs, permissions),
 	}, nil
 }
 
@@ -447,7 +447,7 @@ func (s *AuthService) ChangePassword(ctx context.Context, req *ChangePasswordReq
 	// 更新密码
 	user.Password = hashedPassword
 	user.UpdatedAt = time.Now()
-	
+
 	if _, err := s.userUc.UpdateUser(ctx, user); err != nil {
 		s.log.Errorf("Failed to update password: %v", err)
 		return errors.InternalServer("INTERNAL_ERROR", "密码更新失败")

@@ -13,31 +13,30 @@ import (
 // Frappe式权限系统数据模型
 // ================================================================
 
-
 // DocType 文档类型
 type DocType struct {
-	ID             int64                    `json:"id"`
-	Name           string                   `json:"name"`                        // 文档类型名称
-	Label          string                   `json:"label"`                       // 显示名称
-	Module         string                   `json:"module"`                      // 所属模块
-	Description    string                   `json:"description,omitempty"`       // 描述
-	IsSubmittable  bool                     `json:"is_submittable"`              // 是否支持提交工作流
-	IsChildTable   bool                     `json:"is_child_table"`              // 是否是子表
-	HasWorkflow    bool                     `json:"has_workflow"`                // 是否有工作流
-	TrackChanges   bool                     `json:"track_changes"`               // 是否跟踪变更
-	AppliesToAll   bool                     `json:"applies_to_all_users"`        // 是否对所有用户可见
-	MaxAttachments int                      `json:"max_attachments"`             // 最大附件数
-	Permissions    map[string]interface{}   `json:"permissions,omitempty"`       // 权限设置JSON
-	NamingRule     string                   `json:"naming_rule,omitempty"`       // 命名规则
-	TitleField     string                   `json:"title_field,omitempty"`       // 标题字段
-	SearchFields   []string                 `json:"search_fields,omitempty"`     // 搜索字段
-	SortField      string                   `json:"sort_field,omitempty"`        // 排序字段
-	SortOrder      string                   `json:"sort_order,omitempty"`        // 排序方向
-	Version        int                      `json:"version"`                     // 版本号
-	CreatedAt      time.Time                `json:"created_at"`
-	UpdatedAt      time.Time                `json:"updated_at"`
-	CreatedBy      *int64                   `json:"created_by,omitempty"`
-	UpdatedBy      *int64                   `json:"updated_by,omitempty"`
+	ID             int64                  `json:"id"`
+	Name           string                 `json:"name"`                    // 文档类型名称
+	Label          string                 `json:"label"`                   // 显示名称
+	Module         string                 `json:"module"`                  // 所属模块
+	Description    string                 `json:"description,omitempty"`   // 描述
+	IsSubmittable  bool                   `json:"is_submittable"`          // 是否支持提交工作流
+	IsChildTable   bool                   `json:"is_child_table"`          // 是否是子表
+	HasWorkflow    bool                   `json:"has_workflow"`            // 是否有工作流
+	TrackChanges   bool                   `json:"track_changes"`           // 是否跟踪变更
+	AppliesToAll   bool                   `json:"applies_to_all_users"`    // 是否对所有用户可见
+	MaxAttachments int                    `json:"max_attachments"`         // 最大附件数
+	Permissions    map[string]interface{} `json:"permissions,omitempty"`   // 权限设置JSON
+	NamingRule     string                 `json:"naming_rule,omitempty"`   // 命名规则
+	TitleField     string                 `json:"title_field,omitempty"`   // 标题字段
+	SearchFields   []string               `json:"search_fields,omitempty"` // 搜索字段
+	SortField      string                 `json:"sort_field,omitempty"`    // 排序字段
+	SortOrder      string                 `json:"sort_order,omitempty"`    // 排序方向
+	Version        int                    `json:"version"`                 // 版本号
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	CreatedBy      *int64                 `json:"created_by,omitempty"`
+	UpdatedBy      *int64                 `json:"updated_by,omitempty"`
 }
 
 // Validate 验证DocType数据的完整性和正确性
@@ -45,19 +44,19 @@ func (d *DocType) Validate() error {
 	if strings.TrimSpace(d.Name) == "" {
 		return fmt.Errorf("DocType name is required")
 	}
-	
+
 	if strings.TrimSpace(d.Label) == "" {
 		return fmt.Errorf("DocType label is required")
 	}
-	
+
 	if strings.TrimSpace(d.Module) == "" {
 		return fmt.Errorf("DocType module is required")
 	}
-	
+
 	if d.MaxAttachments < 0 {
 		return fmt.Errorf("MaxAttachments cannot be negative")
 	}
-	
+
 	// 验证命名规则
 	if d.NamingRule != "" {
 		validNamingRules := []string{"autoname", "prompt", "field", "series", "random", "expression"}
@@ -72,49 +71,49 @@ func (d *DocType) Validate() error {
 			return fmt.Errorf("invalid naming rule: %s", d.NamingRule)
 		}
 	}
-	
+
 	// 验证排序方向
 	if d.SortOrder != "" && d.SortOrder != "ASC" && d.SortOrder != "DESC" {
 		return fmt.Errorf("sort order must be ASC or DESC")
 	}
-	
+
 	return nil
 }
 
 // PermissionRule 权限规则
 type PermissionRule struct {
-	ID              int64     `json:"id"`
-	RoleID          int64     `json:"role_id"`                     // 角色ID
-	DocType         string    `json:"doc_type"`                    // 文档类型
-	PermissionLevel int       `json:"permission_level"`            // 权限级别 (0=文档级, 1-9=字段级)
-	
+	ID              int64  `json:"id"`
+	RoleID          int64  `json:"role_id"`          // 角色ID
+	DocType         string `json:"doc_type"`         // 文档类型
+	PermissionLevel int    `json:"permission_level"` // 权限级别 (0=文档级, 1-9=字段级)
+
 	// 基础权限
-	CanRead  bool `json:"can_read"`                               // 读取权限
-	CanWrite bool `json:"can_write"`                              // 写入权限
-	
+	CanRead  bool `json:"can_read"`  // 读取权限
+	CanWrite bool `json:"can_write"` // 写入权限
+
 	// 文档级权限 (仅permission_level=0时有效)
-	CanCreate bool `json:"can_create"`                            // 创建权限
-	CanDelete bool `json:"can_delete"`                            // 删除权限
-	CanSubmit bool `json:"can_submit"`                            // 提交权限
-	CanCancel bool `json:"can_cancel"`                            // 取消权限
-	CanAmend  bool `json:"can_amend"`                             // 修订权限
-	CanPrint  bool `json:"can_print"`                             // 打印权限
-	CanEmail  bool `json:"can_email"`                             // 邮件权限
-	CanImport bool `json:"can_import"`                            // 导入权限
-	CanExport bool `json:"can_export"`                            // 导出权限
-	CanShare  bool `json:"can_share"`                             // 分享权限
-	CanReport bool `json:"can_report"`                            // 报表权限
-	CanSetUserPermissions bool `json:"can_set_user_permissions"`    // 设置用户权限
-	
+	CanCreate             bool `json:"can_create"`               // 创建权限
+	CanDelete             bool `json:"can_delete"`               // 删除权限
+	CanSubmit             bool `json:"can_submit"`               // 提交权限
+	CanCancel             bool `json:"can_cancel"`               // 取消权限
+	CanAmend              bool `json:"can_amend"`                // 修订权限
+	CanPrint              bool `json:"can_print"`                // 打印权限
+	CanEmail              bool `json:"can_email"`                // 邮件权限
+	CanImport             bool `json:"can_import"`               // 导入权限
+	CanExport             bool `json:"can_export"`               // 导出权限
+	CanShare              bool `json:"can_share"`                // 分享权限
+	CanReport             bool `json:"can_report"`               // 报表权限
+	CanSetUserPermissions bool `json:"can_set_user_permissions"` // 设置用户权限
+
 	// 条件权限
-	OnlyIfCreator bool `json:"only_if_creator"`                   // 仅创建者可访问
-	
+	OnlyIfCreator bool `json:"only_if_creator"` // 仅创建者可访问
+
 	// 审计字段
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	CreatedBy *int64    `json:"created_by,omitempty"`
 	UpdatedBy *int64    `json:"updated_by,omitempty"`
-	
+
 	// 关联对象
 	Role *Role `json:"role,omitempty"`
 }
@@ -124,15 +123,15 @@ func (r *PermissionRule) Validate() error {
 	if r.RoleID <= 0 {
 		return fmt.Errorf("RoleID must be positive")
 	}
-	
+
 	if strings.TrimSpace(r.DocType) == "" {
 		return fmt.Errorf("DocType is required")
 	}
-	
+
 	if r.PermissionLevel < 0 || r.PermissionLevel > 10 {
 		return fmt.Errorf("PermissionLevel must be between 0 and 10")
 	}
-	
+
 	// 文档级权限验证（permission_level = 0）
 	if r.PermissionLevel == 0 {
 		// 至少需要一个基础权限
@@ -140,34 +139,34 @@ func (r *PermissionRule) Validate() error {
 			return fmt.Errorf("at least one of CanRead or CanWrite must be true for document level permissions")
 		}
 	}
-	
+
 	// 字段级权限验证（permission_level > 0）
 	if r.PermissionLevel > 0 {
 		// 字段级权限不应该有文档级的权限设置
-		if r.CanCreate || r.CanDelete || r.CanSubmit || r.CanCancel || r.CanAmend || 
-		   r.CanPrint || r.CanEmail || r.CanImport || r.CanExport || r.CanShare || r.CanReport {
+		if r.CanCreate || r.CanDelete || r.CanSubmit || r.CanCancel || r.CanAmend ||
+			r.CanPrint || r.CanEmail || r.CanImport || r.CanExport || r.CanShare || r.CanReport {
 			return fmt.Errorf("field level permissions (level > 0) should only use CanRead and CanWrite")
 		}
 	}
-	
+
 	return nil
 }
 
 // UserPermission 用户权限 - 数据范围权限
 type UserPermission struct {
 	ID              int64     `json:"id"`
-	UserID          int64     `json:"user_id"`                     // 用户ID
-	DocType         string    `json:"doc_type"`                    // 受限制的文档类型
-	DocName         string    `json:"doc_name"`                    // 允许访问的具体记录标识
-	Value           string    `json:"value"`                       // 权限值
-	ApplicableFor   *string   `json:"applicable_for,omitempty"`    // 仅对指定文档类型生效
-	HideDescendants bool      `json:"hide_descendants"`            // 隐藏子记录
-	IsDefault       bool      `json:"is_default"`                  // 是否为默认权限
+	UserID          int64     `json:"user_id"`                  // 用户ID
+	DocType         string    `json:"doc_type"`                 // 受限制的文档类型
+	DocName         string    `json:"doc_name"`                 // 允许访问的具体记录标识
+	Value           string    `json:"value"`                    // 权限值
+	ApplicableFor   *string   `json:"applicable_for,omitempty"` // 仅对指定文档类型生效
+	HideDescendants bool      `json:"hide_descendants"`         // 隐藏子记录
+	IsDefault       bool      `json:"is_default"`               // 是否为默认权限
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 	CreatedBy       *int64    `json:"created_by,omitempty"`
 	UpdatedBy       *int64    `json:"updated_by,omitempty"`
-	
+
 	// 关联对象
 	User *User `json:"user,omitempty"`
 }
@@ -177,36 +176,36 @@ func (u *UserPermission) Validate() error {
 	if u.UserID <= 0 {
 		return fmt.Errorf("UserID must be positive")
 	}
-	
+
 	if strings.TrimSpace(u.DocType) == "" {
 		return fmt.Errorf("DocType is required")
 	}
-	
+
 	if strings.TrimSpace(u.DocName) == "" {
 		return fmt.Errorf("DocName is required")
 	}
-	
+
 	if strings.TrimSpace(u.Value) == "" {
 		return fmt.Errorf("Value is required")
 	}
-	
+
 	// 验证ApplicableFor如果不为空，必须是有效的DocType
 	if u.ApplicableFor != nil && strings.TrimSpace(*u.ApplicableFor) == "" {
 		return fmt.Errorf("ApplicableFor cannot be empty string if provided")
 	}
-	
+
 	return nil
 }
 
 // FieldPermissionLevel 字段权限级别
 type FieldPermissionLevel struct {
 	ID              int64     `json:"id"`
-	DocType         string    `json:"doc_type"`                    // 文档类型
-	FieldName       string    `json:"field_name"`                  // 字段名称
-	FieldLabel      string    `json:"field_label,omitempty"`       // 字段显示名称
-	PermissionLevel int       `json:"permission_level"`            // 权限级别
-	FieldType       string    `json:"field_type"`                  // 字段类型
-	IsMandatory     bool      `json:"is_mandatory"`                // 是否必填
+	DocType         string    `json:"doc_type"`              // 文档类型
+	FieldName       string    `json:"field_name"`            // 字段名称
+	FieldLabel      string    `json:"field_label,omitempty"` // 字段显示名称
+	PermissionLevel int       `json:"permission_level"`      // 权限级别
+	FieldType       string    `json:"field_type"`            // 字段类型
+	IsMandatory     bool      `json:"is_mandatory"`          // 是否必填
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 	CreatedBy       *int64    `json:"created_by,omitempty"`
@@ -218,15 +217,15 @@ func (f *FieldPermissionLevel) Validate() error {
 	if strings.TrimSpace(f.DocType) == "" {
 		return fmt.Errorf("DocType is required")
 	}
-	
+
 	if strings.TrimSpace(f.FieldName) == "" {
 		return fmt.Errorf("FieldName is required")
 	}
-	
+
 	if f.PermissionLevel < 0 || f.PermissionLevel > 10 {
 		return fmt.Errorf("PermissionLevel must be between 0 and 10")
 	}
-	
+
 	// 验证字段类型
 	if strings.TrimSpace(f.FieldType) != "" {
 		validTypes := []string{
@@ -238,7 +237,7 @@ func (f *FieldPermissionLevel) Validate() error {
 			"Attach", "Attach Image", "Signature", "Color",
 			"Barcode", "Geolocation", "Duration", "Rating",
 		}
-		
+
 		isValidType := false
 		for _, validType := range validTypes {
 			if f.FieldType == validType {
@@ -250,35 +249,35 @@ func (f *FieldPermissionLevel) Validate() error {
 			return fmt.Errorf("invalid field type: %s", f.FieldType)
 		}
 	}
-	
+
 	return nil
 }
 
 // DocumentWorkflowState 文档工作流状态
 type DocumentWorkflowState struct {
-	ID            int64      `json:"id"`
-	DocType       string     `json:"doc_type"`                    // 文档类型
-	DocID         int64      `json:"doc_id"`                      // 文档ID
-	DocName       *string    `json:"doc_name,omitempty"`          // 文档名称/编号
-	WorkflowState string     `json:"workflow_state"`              // 工作流状态
-	DocStatus     int        `json:"docstatus"`                   // 文档状态: 0=草稿, 1=已提交, 2=已取消
-	
+	ID            int64   `json:"id"`
+	DocType       string  `json:"doc_type"`           // 文档类型
+	DocID         int64   `json:"doc_id"`             // 文档ID
+	DocName       *string `json:"doc_name,omitempty"` // 文档名称/编号
+	WorkflowState string  `json:"workflow_state"`     // 工作流状态
+	DocStatus     int     `json:"docstatus"`          // 文档状态: 0=草稿, 1=已提交, 2=已取消
+
 	// 提交相关
-	SubmittedAt *time.Time `json:"submitted_at,omitempty"`       // 提交时间
-	SubmittedBy *int64     `json:"submitted_by,omitempty"`       // 提交人
-	
+	SubmittedAt *time.Time `json:"submitted_at,omitempty"` // 提交时间
+	SubmittedBy *int64     `json:"submitted_by,omitempty"` // 提交人
+
 	// 取消相关
-	CancelledAt   *time.Time `json:"cancelled_at,omitempty"`     // 取消时间
-	CancelledBy   *int64     `json:"cancelled_by,omitempty"`     // 取消人
-	CancelReason  *string    `json:"cancel_reason,omitempty"`    // 取消原因
-	
+	CancelledAt  *time.Time `json:"cancelled_at,omitempty"`  // 取消时间
+	CancelledBy  *int64     `json:"cancelled_by,omitempty"`  // 取消人
+	CancelReason *string    `json:"cancel_reason,omitempty"` // 取消原因
+
 	// 修订相关
-	AmendedFrom *int64 `json:"amended_from,omitempty"`          // 修订自哪个文档
-	IsAmended   bool   `json:"is_amended"`                      // 是否为修订版本
-	
+	AmendedFrom *int64 `json:"amended_from,omitempty"` // 修订自哪个文档
+	IsAmended   bool   `json:"is_amended"`             // 是否为修订版本
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	
+
 	// 关联对象
 	SubmittedByUser *User `json:"submitted_by_user,omitempty"`
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
@@ -291,7 +290,7 @@ type EnhancedUserPermission struct {
 	PermissionLevel int    `json:"permission_level"`
 	RoleCode        string `json:"role_code"`
 	RoleName        string `json:"role_name"`
-	
+
 	// 权限列表
 	CanRead   bool `json:"can_read"`
 	CanWrite  bool `json:"can_write"`
@@ -306,7 +305,7 @@ type EnhancedUserPermission struct {
 	CanExport bool `json:"can_export"`
 	CanShare  bool `json:"can_share"`
 	CanReport bool `json:"can_report"`
-	
+
 	OnlyIfCreator bool `json:"only_if_creator"`
 }
 
@@ -337,25 +336,25 @@ func (r *PermissionCheckRequest) Validate() error {
 	if r.UserID <= 0 {
 		return fmt.Errorf("UserID must be positive")
 	}
-	
+
 	if strings.TrimSpace(r.DocType) == "" {
 		return fmt.Errorf("DocType is required")
 	}
-	
+
 	if strings.TrimSpace(r.Permission) == "" {
 		return fmt.Errorf("Permission is required")
 	}
-	
+
 	if r.PermissionLevel < 0 || r.PermissionLevel > 10 {
 		return fmt.Errorf("PermissionLevel must be between 0 and 10")
 	}
-	
+
 	// 验证权限类型
 	validPermissions := []string{
 		"read", "write", "create", "delete", "submit", "cancel", "amend",
 		"print", "email", "import", "export", "share", "report",
 	}
-	
+
 	isValidPermission := false
 	for _, validPerm := range validPermissions {
 		if r.Permission == validPerm {
@@ -366,17 +365,17 @@ func (r *PermissionCheckRequest) Validate() error {
 	if !isValidPermission {
 		return fmt.Errorf("invalid permission type: %s", r.Permission)
 	}
-	
+
 	// 如果提供了DocID，必须为正数
 	if r.DocID != nil && *r.DocID <= 0 {
 		return fmt.Errorf("DocID must be positive if provided")
 	}
-	
+
 	// 如果提供了DocCreatorID，必须为正数
 	if r.DocCreatorID != nil && *r.DocCreatorID <= 0 {
 		return fmt.Errorf("DocCreatorID must be positive if provided")
 	}
-	
+
 	return nil
 }
 
@@ -407,7 +406,7 @@ type CreatePermissionRuleRequest struct {
 	RoleID          int64  `json:"role_id"`
 	DocType         string `json:"doc_type"`
 	PermissionLevel int    `json:"permission_level"`
-	
+
 	// 权限设置
 	CanRead   bool `json:"can_read"`
 	CanWrite  bool `json:"can_write"`
@@ -422,7 +421,7 @@ type CreatePermissionRuleRequest struct {
 	CanExport bool `json:"can_export"`
 	CanShare  bool `json:"can_share"`
 	CanReport bool `json:"can_report"`
-	
+
 	OnlyIfCreator bool `json:"only_if_creator"`
 }
 
@@ -431,15 +430,15 @@ func (r *CreatePermissionRuleRequest) Validate() error {
 	if r.RoleID <= 0 {
 		return fmt.Errorf("RoleID must be positive")
 	}
-	
+
 	if strings.TrimSpace(r.DocType) == "" {
 		return fmt.Errorf("DocType is required")
 	}
-	
+
 	if r.PermissionLevel < 0 || r.PermissionLevel > 10 {
 		return fmt.Errorf("PermissionLevel must be between 0 and 10")
 	}
-	
+
 	// 文档级权限验证（permission_level = 0）
 	if r.PermissionLevel == 0 {
 		// 至少需要一个基础权限
@@ -447,16 +446,16 @@ func (r *CreatePermissionRuleRequest) Validate() error {
 			return fmt.Errorf("at least one of CanRead or CanWrite must be true for document level permissions")
 		}
 	}
-	
+
 	// 字段级权限验证（permission_level > 0）
 	if r.PermissionLevel > 0 {
 		// 字段级权限不应该有文档级的权限设置
-		if r.CanCreate || r.CanDelete || r.CanSubmit || r.CanCancel || r.CanAmend || 
-		   r.CanPrint || r.CanEmail || r.CanImport || r.CanExport || r.CanShare || r.CanReport {
+		if r.CanCreate || r.CanDelete || r.CanSubmit || r.CanCancel || r.CanAmend ||
+			r.CanPrint || r.CanEmail || r.CanImport || r.CanExport || r.CanShare || r.CanReport {
 			return fmt.Errorf("field level permissions (level > 0) should only use CanRead and CanWrite")
 		}
 	}
-	
+
 	return nil
 }
 
@@ -482,24 +481,24 @@ func (r *CreateUserPermissionRequest) Validate() error {
 	if r.UserID <= 0 {
 		return fmt.Errorf("UserID must be positive")
 	}
-	
+
 	if strings.TrimSpace(r.DocType) == "" {
 		return fmt.Errorf("DocType is required")
 	}
-	
+
 	if strings.TrimSpace(r.DocName) == "" {
 		return fmt.Errorf("DocName is required")
 	}
-	
+
 	if strings.TrimSpace(r.Value) == "" {
 		return fmt.Errorf("Value is required")
 	}
-	
+
 	// 验证ApplicableFor如果不为空，必须是有效的DocType
 	if r.ApplicableFor != nil && strings.TrimSpace(*r.ApplicableFor) == "" {
 		return fmt.Errorf("ApplicableFor cannot be empty string if provided")
 	}
-	
+
 	return nil
 }
 
@@ -521,14 +520,14 @@ type PermissionRepo interface {
 	GetDocType(ctx context.Context, name string) (*DocType, error)
 	ListDocTypes(ctx context.Context, module string) ([]*DocType, error)
 	DeleteDocType(ctx context.Context, name string) error
-	
+
 	// 权限规则管理
 	CreatePermissionRule(ctx context.Context, rule *PermissionRule) (*PermissionRule, error)
 	UpdatePermissionRule(ctx context.Context, rule *PermissionRule) (*PermissionRule, error)
 	GetPermissionRule(ctx context.Context, id int64) (*PermissionRule, error)
 	ListPermissionRules(ctx context.Context, roleID int64, docType string) ([]*PermissionRule, error)
 	DeletePermissionRule(ctx context.Context, id int64) error
-	
+
 	// 用户权限管理
 	CreateUserPermission(ctx context.Context, userPermission *UserPermission) (*UserPermission, error)
 	UpdateUserPermission(ctx context.Context, userPermission *UserPermission) (*UserPermission, error)
@@ -536,7 +535,7 @@ type PermissionRepo interface {
 	ListUserPermissions(ctx context.Context, userID int64, docType string, page, size int32) ([]*UserPermission, error)
 	GetUserPermissionsCount(ctx context.Context, userID int64, docType string) (int32, error)
 	DeleteUserPermission(ctx context.Context, id int64) error
-	
+
 	// 字段权限级别管理
 	CreateFieldPermissionLevel(ctx context.Context, field *FieldPermissionLevel) (*FieldPermissionLevel, error)
 	UpdateFieldPermissionLevel(ctx context.Context, field *FieldPermissionLevel) (*FieldPermissionLevel, error)
@@ -544,7 +543,7 @@ type PermissionRepo interface {
 	ListFieldPermissionLevels(ctx context.Context, docType string, page, size int32) ([]*FieldPermissionLevel, error)
 	GetFieldPermissionLevelsCount(ctx context.Context, docType string) (int32, error)
 	DeleteFieldPermissionLevel(ctx context.Context, id int64) error
-	
+
 	// 文档工作流状态管理
 	CreateDocumentWorkflowState(ctx context.Context, state *DocumentWorkflowState) (*DocumentWorkflowState, error)
 	UpdateDocumentWorkflowState(ctx context.Context, state *DocumentWorkflowState) (*DocumentWorkflowState, error)
@@ -552,7 +551,7 @@ type PermissionRepo interface {
 	ListDocumentWorkflowStates(ctx context.Context, docType, documentName, state string, userID int64, page, size int32) ([]*DocumentWorkflowState, error)
 	GetDocumentWorkflowStatesCount(ctx context.Context, docType, documentName, state string, userID int64) (int32, error)
 	DeleteDocumentWorkflowState(ctx context.Context, stateID int64) error
-	
+
 	// 权限检查和查询
 	CheckDocumentPermission(ctx context.Context, req *PermissionCheckRequest) (bool, error)
 	CheckPermission(ctx context.Context, userID int64, documentType, action string, permissionLevel int) (bool, error)
@@ -561,7 +560,7 @@ type PermissionRepo interface {
 	GetAccessibleFields(ctx context.Context, req *FieldPermissionRequest) ([]*AccessibleField, error)
 	FilterDocumentsByPermission(ctx context.Context, userID int64, documentType string, documents []map[string]interface{}) ([]map[string]interface{}, error)
 	GetUserRoles(ctx context.Context, userID int64) ([]string, error)
-	
+
 	// 批量操作
 	BatchCreatePermissionRules(ctx context.Context, rules []*PermissionRule) error
 	BatchCreateUserPermissions(ctx context.Context, permissions []*UserPermission) error
@@ -579,7 +578,7 @@ type PermissionUsecaseInterface interface {
 	ListDocTypes(ctx context.Context, module string) ([]*DocType, error)
 	UpdateDocType(ctx context.Context, docType *DocType) (*DocType, error)
 	DeleteDocType(ctx context.Context, name string) error
-	
+
 	// 权限规则管理
 	CreatePermissionRule(ctx context.Context, rule *PermissionRule) (*PermissionRule, error)
 	CreatePermissionRuleFromRequest(ctx context.Context, req *CreatePermissionRuleRequest) (*PermissionRule, error)
@@ -588,7 +587,7 @@ type PermissionUsecaseInterface interface {
 	UpdatePermissionRule(ctx context.Context, rule *PermissionRule) (*PermissionRule, error)
 	DeletePermissionRule(ctx context.Context, id int64) error
 	BatchCreatePermissionRules(ctx context.Context, rules []*PermissionRule) error
-	
+
 	// 用户权限管理
 	CreateUserPermission(ctx context.Context, userPermission *UserPermission) (*UserPermission, error)
 	CreateUserPermissionFromRequest(ctx context.Context, req *CreateUserPermissionRequest) (*UserPermission, error)
@@ -598,7 +597,7 @@ type PermissionUsecaseInterface interface {
 	UpdateUserPermission(ctx context.Context, userPerm *UserPermission) (*UserPermission, error)
 	DeleteUserPermission(ctx context.Context, id int64) error
 	BatchCreateUserPermissions(ctx context.Context, permissions []*UserPermission) error
-	
+
 	// 字段权限级别管理
 	CreateFieldPermissionLevel(ctx context.Context, fieldPerm *FieldPermissionLevel) (*FieldPermissionLevel, error)
 	GetFieldPermissionLevel(ctx context.Context, id int64) (*FieldPermissionLevel, error)
@@ -606,7 +605,7 @@ type PermissionUsecaseInterface interface {
 	DeleteFieldPermissionLevel(ctx context.Context, id int64) error
 	ListFieldPermissionLevels(ctx context.Context, docType string, page, size int32) ([]*FieldPermissionLevel, error)
 	GetFieldPermissionLevelsCount(ctx context.Context, docType string) (int32, error)
-	
+
 	// 文档工作流状态管理
 	CreateDocumentWorkflowState(ctx context.Context, state *DocumentWorkflowState) (*DocumentWorkflowState, error)
 	GetDocumentWorkflowState(ctx context.Context, stateID int64) (*DocumentWorkflowState, error)
@@ -614,7 +613,7 @@ type PermissionUsecaseInterface interface {
 	DeleteDocumentWorkflowState(ctx context.Context, stateID int64) error
 	ListDocumentWorkflowStates(ctx context.Context, docType, documentName, state string, userID int64, page, size int32) ([]*DocumentWorkflowState, error)
 	GetDocumentWorkflowStatesCount(ctx context.Context, docType, documentName, state string, userID int64) (int32, error)
-	
+
 	// 权限检查和查询
 	CheckDocumentPermission(ctx context.Context, req *PermissionCheckRequest) (*PermissionCheckResponse, error)
 	CheckUserPermission(ctx context.Context, userID int64, permissionCode string) (bool, error)
@@ -687,7 +686,7 @@ func (uc *PermissionUsecase) CreatePermissionRuleFromRequest(ctx context.Context
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
 	}
-	
+
 	return uc.repo.CreatePermissionRule(ctx, rule)
 }
 
@@ -714,10 +713,9 @@ func (uc *PermissionUsecase) CreateUserPermissionFromRequest(ctx context.Context
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
 	}
-	
+
 	return uc.repo.CreateUserPermission(ctx, userPermission)
 }
-
 
 // 权限检查
 func (uc *PermissionUsecase) CheckDocumentPermission(ctx context.Context, req *PermissionCheckRequest) (*PermissionCheckResponse, error) {
@@ -725,15 +723,15 @@ func (uc *PermissionUsecase) CheckDocumentPermission(ctx context.Context, req *P
 	if err != nil {
 		return nil, err
 	}
-	
+
 	response := &PermissionCheckResponse{
 		HasPermission: hasPermission,
 	}
-	
+
 	if !hasPermission {
 		response.Reason = "权限不足"
 	}
-	
+
 	return response, nil
 }
 
@@ -742,7 +740,7 @@ func (uc *PermissionUsecase) GetAccessibleFields(ctx context.Context, req *Field
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &FieldPermissionResponse{
 		Fields: fields,
 	}, nil

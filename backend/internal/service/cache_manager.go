@@ -32,20 +32,20 @@ func NewCacheManagerService(permissionUc *biz.PermissionUsecase, cache cache.Per
 
 // WarmUpCacheRequest 缓存预热请求
 type WarmUpCacheRequest struct {
-	CacheTypes   []string `json:"cache_types,omitempty"`   // 指定要预热的缓存类型
-	UserIDs      []int64  `json:"user_ids,omitempty"`      // 指定要预热的用户ID
-	RoleIDs      []int64  `json:"role_ids,omitempty"`      // 指定要预热的角色ID  
-	DocTypes     []string `json:"doc_types,omitempty"`     // 指定要预热的文档类型
-	ForceRefresh bool     `json:"force_refresh"`           // 是否强制刷新缓存
+	CacheTypes   []string `json:"cache_types,omitempty"` // 指定要预热的缓存类型
+	UserIDs      []int64  `json:"user_ids,omitempty"`    // 指定要预热的用户ID
+	RoleIDs      []int64  `json:"role_ids,omitempty"`    // 指定要预热的角色ID
+	DocTypes     []string `json:"doc_types,omitempty"`   // 指定要预热的文档类型
+	ForceRefresh bool     `json:"force_refresh"`         // 是否强制刷新缓存
 }
 
 // WarmUpCacheResponse 缓存预热响应
 type WarmUpCacheResponse struct {
-	Success      bool              `json:"success"`
-	Message      string            `json:"message"`
-	WarmupStats  map[string]int    `json:"warmup_stats"`
-	Duration     time.Duration     `json:"duration"`
-	Errors       []string          `json:"errors,omitempty"`
+	Success     bool           `json:"success"`
+	Message     string         `json:"message"`
+	WarmupStats map[string]int `json:"warmup_stats"`
+	Duration    time.Duration  `json:"duration"`
+	Errors      []string       `json:"errors,omitempty"`
 }
 
 // ClearCacheRequest 清除缓存请求
@@ -97,12 +97,12 @@ func (s *CacheManagerService) WarmUpCache(ctx context.Context, req *WarmUpCacheR
 		wg.Add(1)
 		go func(ct string) {
 			defer wg.Done()
-			
+
 			count, err := s.warmupCacheType(ctx, ct, req)
-			
+
 			mu.Lock()
 			defer mu.Unlock()
-			
+
 			if err != nil {
 				errs = append(errs, fmt.Sprintf("%s: %v", ct, err))
 				s.log.Errorf("Failed to warmup cache type %s: %v", ct, err)
@@ -180,7 +180,7 @@ func (s *CacheManagerService) warmupUserRoles(ctx context.Context, userIDs []int
 // warmupDocTypes 预热文档类型缓存
 func (s *CacheManagerService) warmupDocTypes(ctx context.Context, docTypes []string) (int, error) {
 	var targetDocTypes []string
-	
+
 	if len(docTypes) == 0 {
 		// 获取所有文档类型
 		allDocTypes, err := s.permissionUc.ListDocTypes(ctx, "")
@@ -244,7 +244,7 @@ func (s *CacheManagerService) warmupPermissionRules(ctx context.Context, roleIDs
 // warmupFieldPermissionLevels 预热字段权限级别缓存
 func (s *CacheManagerService) warmupFieldPermissionLevels(ctx context.Context, docTypes []string) (int, error) {
 	var targetDocTypes []string
-	
+
 	if len(docTypes) == 0 {
 		// 获取所有文档类型
 		allDocTypes, err := s.permissionUc.ListDocTypes(ctx, "")
@@ -307,7 +307,7 @@ func (s *CacheManagerService) ClearCache(ctx context.Context, req *ClearCacheReq
 			clearedKeys += 1000 // 估算值
 			s.log.Info("Cleared all permission cache")
 		}
-		
+
 		return &ClearCacheResponse{
 			Success:     len(errs) == 0,
 			Message:     "Cache clear completed",
@@ -435,7 +435,7 @@ func (s *CacheManagerService) StartCacheMaintenanceTask(ctx context.Context) {
 				s.log.Errorf("Failed to get cache stats for maintenance: %v", err)
 				continue
 			}
-			
+
 			s.log.Infof("Daily cache maintenance report: %+v", stats)
 		}
 	}

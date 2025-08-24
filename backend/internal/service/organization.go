@@ -53,17 +53,17 @@ type AssignUsersRequest struct {
 
 // OrganizationInfo 组织信息
 type OrganizationInfo struct {
-	ID          int32                 `json:"id"`
-	ParentID    *int32                `json:"parent_id"`
-	Name        string                `json:"name"`
-	Code        string                `json:"code"`
-	Description string                `json:"description"`
-	IsEnabled   bool                  `json:"is_enabled"`
-	SortOrder   int32                 `json:"sort_order"`
-	CreatedAt   time.Time             `json:"created_at"`
-	UpdatedAt   time.Time             `json:"updated_at"`
-	Children    []*OrganizationInfo   `json:"children,omitempty"`
-	Users       []*UserInfo           `json:"users,omitempty"`
+	ID          int32               `json:"id"`
+	ParentID    *int32              `json:"parent_id"`
+	Name        string              `json:"name"`
+	Code        string              `json:"code"`
+	Description string              `json:"description"`
+	IsEnabled   bool                `json:"is_enabled"`
+	SortOrder   int32               `json:"sort_order"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
+	Children    []*OrganizationInfo `json:"children,omitempty"`
+	Users       []*UserInfo         `json:"users,omitempty"`
 }
 
 // CreateOrganization 创建组织

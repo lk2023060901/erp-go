@@ -15,13 +15,13 @@ type CachedPermissionRepo struct {
 	repo  biz.PermissionRepo
 	cache cache.PermissionCache
 	log   *log.Helper
-	
+
 	// 缓存TTL配置
-	userPermissionTTL    time.Duration
-	userRoleTTL          time.Duration
-	permissionRuleTTL    time.Duration
-	fieldPermissionTTL   time.Duration
-	docTypeTTL           time.Duration
+	userPermissionTTL      time.Duration
+	userRoleTTL            time.Duration
+	permissionRuleTTL      time.Duration
+	fieldPermissionTTL     time.Duration
+	docTypeTTL             time.Duration
 	userPermissionLevelTTL time.Duration
 }
 
@@ -31,7 +31,7 @@ func NewCachedPermissionRepo(repo biz.PermissionRepo, cache cache.PermissionCach
 		repo:  repo,
 		cache: cache,
 		log:   log.NewHelper(logger),
-		
+
 		// 设置默认缓存TTL
 		userPermissionTTL:      15 * time.Minute,
 		userRoleTTL:            30 * time.Minute,
@@ -48,12 +48,12 @@ func (r *CachedPermissionRepo) CreateDocType(ctx context.Context, docType *biz.D
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 缓存新创建的文档类型
 	if err := r.cache.SetDocType(ctx, result.Name, result, r.docTypeTTL); err != nil {
 		r.log.Warnf("Failed to cache created doctype %s: %v", result.Name, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -65,18 +65,18 @@ func (r *CachedPermissionRepo) GetDocType(ctx context.Context, name string) (*bi
 	} else if cached != nil {
 		return cached, nil
 	}
-	
+
 	// 缓存未命中，从数据库获取
 	docType, err := r.repo.GetDocType(ctx, name)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 缓存结果
 	if err := r.cache.SetDocType(ctx, name, docType, r.docTypeTTL); err != nil {
 		r.log.Warnf("Failed to cache doctype %s: %v", name, err)
 	}
-	
+
 	return docType, nil
 }
 
@@ -85,17 +85,17 @@ func (r *CachedPermissionRepo) UpdateDocType(ctx context.Context, docType *biz.D
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 更新缓存
 	if err := r.cache.SetDocType(ctx, result.Name, result, r.docTypeTTL); err != nil {
 		r.log.Warnf("Failed to update cached doctype %s: %v", result.Name, err)
 	}
-	
+
 	// 清除相关缓存
 	if err := r.cache.ClearDocTypeCache(ctx, result.Name); err != nil {
 		r.log.Warnf("Failed to clear doctype cache for %s: %v", result.Name, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -104,17 +104,17 @@ func (r *CachedPermissionRepo) DeleteDocType(ctx context.Context, name string) e
 	if err != nil {
 		return err
 	}
-	
+
 	// 清除缓存
 	if err := r.cache.DeleteDocType(ctx, name); err != nil {
 		r.log.Warnf("Failed to delete cached doctype %s: %v", name, err)
 	}
-	
+
 	// 清除相关缓存
 	if err := r.cache.ClearDocTypeCache(ctx, name); err != nil {
 		r.log.Warnf("Failed to clear doctype cache for %s: %v", name, err)
 	}
-	
+
 	return nil
 }
 
@@ -129,17 +129,17 @@ func (r *CachedPermissionRepo) CreatePermissionRule(ctx context.Context, rule *b
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 清除相关角色的权限规则缓存
 	if err := r.cache.DeletePermissionRules(ctx, result.RoleID, result.DocType); err != nil {
 		r.log.Warnf("Failed to clear permission rule cache for role %d doctype %s: %v", result.RoleID, result.DocType, err)
 	}
-	
+
 	// 清除角色相关缓存
 	if err := r.cache.ClearRoleCache(ctx, result.RoleID); err != nil {
 		r.log.Warnf("Failed to clear role cache for role %d: %v", result.RoleID, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -156,18 +156,18 @@ func (r *CachedPermissionRepo) ListPermissionRules(ctx context.Context, roleID i
 	} else if cached != nil {
 		return cached, nil
 	}
-	
+
 	// 缓存未命中，从数据库获取
 	rules, err := r.repo.ListPermissionRules(ctx, roleID, docType)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 缓存结果
 	if err := r.cache.SetPermissionRules(ctx, roleID, docType, rules, r.permissionRuleTTL); err != nil {
 		r.log.Warnf("Failed to cache permission rules for role %d doctype %s: %v", roleID, docType, err)
 	}
-	
+
 	return rules, nil
 }
 
@@ -176,17 +176,17 @@ func (r *CachedPermissionRepo) UpdatePermissionRule(ctx context.Context, rule *b
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 清除相关缓存
 	if err := r.cache.DeletePermissionRules(ctx, result.RoleID, result.DocType); err != nil {
 		r.log.Warnf("Failed to clear permission rule cache for role %d doctype %s: %v", result.RoleID, result.DocType, err)
 	}
-	
+
 	// 清除角色相关缓存
 	if err := r.cache.ClearRoleCache(ctx, result.RoleID); err != nil {
 		r.log.Warnf("Failed to clear role cache for role %d: %v", result.RoleID, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -196,24 +196,24 @@ func (r *CachedPermissionRepo) DeletePermissionRule(ctx context.Context, id int6
 	if err != nil {
 		return err
 	}
-	
+
 	// 删除权限规则
 	err = r.repo.DeletePermissionRule(ctx, id)
 	if err != nil {
 		return err
 	}
-	
+
 	// 清除相关缓存
 	if rule != nil {
 		if err := r.cache.DeletePermissionRules(ctx, rule.RoleID, rule.DocType); err != nil {
 			r.log.Warnf("Failed to clear permission rule cache for role %d doctype %s: %v", rule.RoleID, rule.DocType, err)
 		}
-		
+
 		if err := r.cache.ClearRoleCache(ctx, rule.RoleID); err != nil {
 			r.log.Warnf("Failed to clear role cache for role %d: %v", rule.RoleID, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -223,12 +223,12 @@ func (r *CachedPermissionRepo) CreateUserPermission(ctx context.Context, userPer
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 清除用户相关缓存
 	if err := r.cache.ClearUserCache(ctx, result.UserID); err != nil {
 		r.log.Warnf("Failed to clear user cache for user %d: %v", result.UserID, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -241,12 +241,12 @@ func (r *CachedPermissionRepo) UpdateUserPermission(ctx context.Context, userPer
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 清除用户相关缓存
 	if err := r.cache.ClearUserCache(ctx, result.UserID); err != nil {
 		r.log.Warnf("Failed to clear user cache for user %d: %v", result.UserID, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -256,20 +256,20 @@ func (r *CachedPermissionRepo) DeleteUserPermission(ctx context.Context, id int6
 	if err != nil {
 		return err
 	}
-	
+
 	// 删除用户权限
 	err = r.repo.DeleteUserPermission(ctx, id)
 	if err != nil {
 		return err
 	}
-	
+
 	// 清除用户相关缓存
 	if userPerm != nil {
 		if err := r.cache.ClearUserCache(ctx, userPerm.UserID); err != nil {
 			r.log.Warnf("Failed to clear user cache for user %d: %v", userPerm.UserID, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -288,12 +288,12 @@ func (r *CachedPermissionRepo) CreateFieldPermissionLevel(ctx context.Context, f
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 清除字段权限级别缓存
 	if err := r.cache.DeleteFieldPermissionLevels(ctx, result.DocType); err != nil {
 		r.log.Warnf("Failed to clear field permission levels cache for doctype %s: %v", result.DocType, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -306,12 +306,12 @@ func (r *CachedPermissionRepo) UpdateFieldPermissionLevel(ctx context.Context, f
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 清除字段权限级别缓存
 	if err := r.cache.DeleteFieldPermissionLevels(ctx, result.DocType); err != nil {
 		r.log.Warnf("Failed to clear field permission levels cache for doctype %s: %v", result.DocType, err)
 	}
-	
+
 	return result, nil
 }
 
@@ -321,20 +321,20 @@ func (r *CachedPermissionRepo) DeleteFieldPermissionLevel(ctx context.Context, i
 	if err != nil {
 		return err
 	}
-	
+
 	// 删除字段权限级别
 	err = r.repo.DeleteFieldPermissionLevel(ctx, id)
 	if err != nil {
 		return err
 	}
-	
+
 	// 清除相关缓存
 	if field != nil {
 		if err := r.cache.DeleteFieldPermissionLevels(ctx, field.DocType); err != nil {
 			r.log.Warnf("Failed to clear field permission levels cache for doctype %s: %v", field.DocType, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -391,18 +391,18 @@ func (r *CachedPermissionRepo) GetUserPermissionLevel(ctx context.Context, userI
 	} else if level >= 0 {
 		return level, nil
 	}
-	
+
 	// 缓存未命中，从数据库获取
 	level, err = r.repo.GetUserPermissionLevel(ctx, userID, documentType)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	// 缓存结果
 	if err := r.cache.SetUserPermissionLevel(ctx, userID, documentType, level, r.userPermissionLevelTTL); err != nil {
 		r.log.Warnf("Failed to cache user permission level for user %d doctype %s: %v", userID, documentType, err)
 	}
-	
+
 	return level, nil
 }
 
@@ -429,18 +429,18 @@ func (r *CachedPermissionRepo) GetUserRoles(ctx context.Context, userID int64) (
 	} else if cached != nil {
 		return cached, nil
 	}
-	
+
 	// 缓存未命中，从数据库获取
 	roles, err := r.repo.GetUserRoles(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 缓存结果
 	if err := r.cache.SetUserRoles(ctx, userID, roles, r.userRoleTTL); err != nil {
 		r.log.Warnf("Failed to cache user roles for user %d: %v", userID, err)
 	}
-	
+
 	return roles, nil
 }
 
@@ -450,7 +450,7 @@ func (r *CachedPermissionRepo) BatchCreatePermissionRules(ctx context.Context, r
 	if err != nil {
 		return err
 	}
-	
+
 	// 清除相关缓存
 	roleDocTypeMap := make(map[int64]map[string]bool)
 	for _, rule := range rules {
@@ -459,13 +459,13 @@ func (r *CachedPermissionRepo) BatchCreatePermissionRules(ctx context.Context, r
 		}
 		roleDocTypeMap[rule.RoleID][rule.DocType] = true
 	}
-	
+
 	for roleID, docTypes := range roleDocTypeMap {
 		// 清除角色缓存
 		if err := r.cache.ClearRoleCache(ctx, roleID); err != nil {
 			r.log.Warnf("Failed to clear role cache for role %d: %v", roleID, err)
 		}
-		
+
 		// 清除权限规则缓存
 		for docType := range docTypes {
 			if err := r.cache.DeletePermissionRules(ctx, roleID, docType); err != nil {
@@ -473,7 +473,7 @@ func (r *CachedPermissionRepo) BatchCreatePermissionRules(ctx context.Context, r
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -482,18 +482,18 @@ func (r *CachedPermissionRepo) BatchCreateUserPermissions(ctx context.Context, p
 	if err != nil {
 		return err
 	}
-	
+
 	// 清除用户缓存
 	userIDs := make(map[int64]bool)
 	for _, perm := range permissions {
 		userIDs[perm.UserID] = true
 	}
-	
+
 	for userID := range userIDs {
 		if err := r.cache.ClearUserCache(ctx, userID); err != nil {
 			r.log.Warnf("Failed to clear user cache for user %d: %v", userID, err)
 		}
 	}
-	
+
 	return nil
 }

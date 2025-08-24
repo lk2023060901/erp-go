@@ -51,7 +51,7 @@ type PermissionCache interface {
 	ClearRoleCache(ctx context.Context, roleID int64) error
 	ClearDocTypeCache(ctx context.Context, docType string) error
 	ClearAllPermissionCache(ctx context.Context) error
-	
+
 	// 缓存统计
 	GetCacheStats(ctx context.Context) (map[string]interface{}, error)
 }
@@ -104,7 +104,7 @@ func (c *RedisPermissionCache) SetUserPermissions(ctx context.Context, userID in
 	if err != nil {
 		return fmt.Errorf("failed to marshal user permissions: %w", err)
 	}
-	
+
 	return c.client.Set(ctx, key, data, ttl).Err()
 }
 
@@ -117,12 +117,12 @@ func (c *RedisPermissionCache) GetUserPermissions(ctx context.Context, userID in
 		}
 		return nil, fmt.Errorf("failed to get user permissions from cache: %w", err)
 	}
-	
+
 	var permissions []string
 	if err := json.Unmarshal([]byte(data), &permissions); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user permissions: %w", err)
 	}
-	
+
 	return permissions, nil
 }
 
@@ -138,7 +138,7 @@ func (c *RedisPermissionCache) SetUserRoles(ctx context.Context, userID int64, r
 	if err != nil {
 		return fmt.Errorf("failed to marshal user roles: %w", err)
 	}
-	
+
 	return c.client.Set(ctx, key, data, ttl).Err()
 }
 
@@ -151,12 +151,12 @@ func (c *RedisPermissionCache) GetUserRoles(ctx context.Context, userID int64) (
 		}
 		return nil, fmt.Errorf("failed to get user roles from cache: %w", err)
 	}
-	
+
 	var roles []string
 	if err := json.Unmarshal([]byte(data), &roles); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal user roles: %w", err)
 	}
-	
+
 	return roles, nil
 }
 
@@ -172,7 +172,7 @@ func (c *RedisPermissionCache) SetPermissionRules(ctx context.Context, roleID in
 	if err != nil {
 		return fmt.Errorf("failed to marshal permission rules: %w", err)
 	}
-	
+
 	return c.client.Set(ctx, key, data, ttl).Err()
 }
 
@@ -185,12 +185,12 @@ func (c *RedisPermissionCache) GetPermissionRules(ctx context.Context, roleID in
 		}
 		return nil, fmt.Errorf("failed to get permission rules from cache: %w", err)
 	}
-	
+
 	var rules []*biz.PermissionRule
 	if err := json.Unmarshal([]byte(data), &rules); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal permission rules: %w", err)
 	}
-	
+
 	return rules, nil
 }
 
@@ -214,12 +214,12 @@ func (c *RedisPermissionCache) GetUserPermissionLevel(ctx context.Context, userI
 		}
 		return -1, fmt.Errorf("failed to get user permission level from cache: %w", err)
 	}
-	
+
 	level, err := strconv.Atoi(result)
 	if err != nil {
 		return -1, fmt.Errorf("failed to parse permission level: %w", err)
 	}
-	
+
 	return level, nil
 }
 
@@ -235,7 +235,7 @@ func (c *RedisPermissionCache) SetFieldPermissionLevels(ctx context.Context, doc
 	if err != nil {
 		return fmt.Errorf("failed to marshal field permission levels: %w", err)
 	}
-	
+
 	return c.client.Set(ctx, key, data, ttl).Err()
 }
 
@@ -248,12 +248,12 @@ func (c *RedisPermissionCache) GetFieldPermissionLevels(ctx context.Context, doc
 		}
 		return nil, fmt.Errorf("failed to get field permission levels from cache: %w", err)
 	}
-	
+
 	var levels map[string]int
 	if err := json.Unmarshal([]byte(data), &levels); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal field permission levels: %w", err)
 	}
-	
+
 	return levels, nil
 }
 
@@ -269,7 +269,7 @@ func (c *RedisPermissionCache) SetDocType(ctx context.Context, name string, docT
 	if err != nil {
 		return fmt.Errorf("failed to marshal doctype: %w", err)
 	}
-	
+
 	return c.client.Set(ctx, key, data, ttl).Err()
 }
 
@@ -282,12 +282,12 @@ func (c *RedisPermissionCache) GetDocType(ctx context.Context, name string) (*bi
 		}
 		return nil, fmt.Errorf("failed to get doctype from cache: %w", err)
 	}
-	
+
 	var docType biz.DocType
 	if err := json.Unmarshal([]byte(data), &docType); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal doctype: %w", err)
 	}
-	
+
 	return &docType, nil
 }
 
@@ -304,11 +304,11 @@ func (c *RedisPermissionCache) ClearUserCache(ctx context.Context, userID int64)
 	if err != nil {
 		return fmt.Errorf("failed to find user cache keys: %w", err)
 	}
-	
+
 	if len(keys) > 0 {
 		return c.client.Del(ctx, keys...).Err()
 	}
-	
+
 	return nil
 }
 
@@ -319,11 +319,11 @@ func (c *RedisPermissionCache) ClearRoleCache(ctx context.Context, roleID int64)
 	if err != nil {
 		return fmt.Errorf("failed to find role cache keys: %w", err)
 	}
-	
+
 	if len(keys) > 0 {
 		return c.client.Del(ctx, keys...).Err()
 	}
-	
+
 	return nil
 }
 
@@ -335,7 +335,7 @@ func (c *RedisPermissionCache) ClearDocTypeCache(ctx context.Context, docType st
 		fmt.Sprintf("%s*:%s", c.prefix, docType),
 		fmt.Sprintf("%s*:*:%s", c.prefix, docType),
 	}
-	
+
 	var allKeys []string
 	for _, pattern := range patterns {
 		keys, err := c.client.Keys(ctx, pattern).Result()
@@ -345,11 +345,11 @@ func (c *RedisPermissionCache) ClearDocTypeCache(ctx context.Context, docType st
 		}
 		allKeys = append(allKeys, keys...)
 	}
-	
+
 	if len(allKeys) > 0 {
 		return c.client.Del(ctx, allKeys...).Err()
 	}
-	
+
 	return nil
 }
 
@@ -360,7 +360,7 @@ func (c *RedisPermissionCache) ClearAllPermissionCache(ctx context.Context) erro
 	if err != nil {
 		return fmt.Errorf("failed to find all permission cache keys: %w", err)
 	}
-	
+
 	if len(keys) > 0 {
 		// 分批删除，避免单次删除过多键值导致Redis阻塞
 		batchSize := 100
@@ -369,21 +369,21 @@ func (c *RedisPermissionCache) ClearAllPermissionCache(ctx context.Context) erro
 			if end > len(keys) {
 				end = len(keys)
 			}
-			
+
 			if err := c.client.Del(ctx, keys[i:end]...).Err(); err != nil {
 				c.logger.Errorf("Failed to delete cache keys batch %d-%d: %v", i, end-1, err)
 				return err
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // 缓存统计和监控方法
 func (c *RedisPermissionCache) GetCacheStats(ctx context.Context) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
-	
+
 	// 获取各类缓存的键数量
 	patterns := map[string]string{
 		"user_permissions": fmt.Sprintf("%suser_perms:*", c.prefix),
@@ -393,7 +393,7 @@ func (c *RedisPermissionCache) GetCacheStats(ctx context.Context) (map[string]in
 		"field_levels":     fmt.Sprintf("%sfield_levels:*", c.prefix),
 		"doctypes":         fmt.Sprintf("%sdoctype:*", c.prefix),
 	}
-	
+
 	for name, pattern := range patterns {
 		keys, err := c.client.Keys(ctx, pattern).Result()
 		if err != nil {
@@ -403,7 +403,7 @@ func (c *RedisPermissionCache) GetCacheStats(ctx context.Context) (map[string]in
 			stats[name] = len(keys)
 		}
 	}
-	
+
 	// 获取Redis内存使用情况
 	info, err := c.client.Info(ctx, "memory").Result()
 	if err == nil {
@@ -416,6 +416,6 @@ func (c *RedisPermissionCache) GetCacheStats(ctx context.Context) (map[string]in
 			}
 		}
 	}
-	
+
 	return stats, nil
 }

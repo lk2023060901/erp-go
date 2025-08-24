@@ -115,14 +115,14 @@ func NewRedisMetrics(client *redis.Client, logger log.Logger) *RedisMetrics {
 // CollectMetrics 收集Redis指标
 func (m *RedisMetrics) CollectMetrics(ctx context.Context) (map[string]interface{}, error) {
 	stats := m.client.PoolStats()
-	
+
 	metrics := map[string]interface{}{
-		"pool_hits":         stats.Hits,
-		"pool_misses":       stats.Misses,
-		"pool_timeouts":     stats.Timeouts,
-		"pool_total_conns":  stats.TotalConns,
-		"pool_idle_conns":   stats.IdleConns,
-		"pool_stale_conns":  stats.StaleConns,
+		"pool_hits":        stats.Hits,
+		"pool_misses":      stats.Misses,
+		"pool_timeouts":    stats.Timeouts,
+		"pool_total_conns": stats.TotalConns,
+		"pool_idle_conns":  stats.IdleConns,
+		"pool_stale_conns": stats.StaleConns,
 	}
 
 	// 获取Redis服务器信息
@@ -134,12 +134,12 @@ func (m *RedisMetrics) CollectMetrics(ctx context.Context) (map[string]interface
 
 	// 这里应该解析info字符串，提取关键指标
 	_ = info // 简化处理
-	
+
 	// 添加更多指标
 	metrics["redis_version"] = "unknown"
-	metrics["used_memory"] = "unknown" 
+	metrics["used_memory"] = "unknown"
 	metrics["connected_clients"] = "unknown"
 	metrics["total_commands_processed"] = "unknown"
-	
+
 	return metrics, nil
 }

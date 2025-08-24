@@ -297,7 +297,7 @@ func (r *userRepo) ListUsersWithOptions(ctx context.Context, options *UserListOp
 
 	// 构建查询条件
 	whereClause, args := r.buildUserFilterQuery(options)
-	
+
 	// 构建排序条件
 	orderClause := r.buildUserSortQuery(options.SortConfig)
 
@@ -371,15 +371,15 @@ func (r *userRepo) ListUsersWithOptions(ctx context.Context, options *UserListOp
 func (r *userRepo) buildUserFilterQuery(options *UserListOptions) (string, []interface{}) {
 	whereClause := "WHERE 1=1"
 	args := []interface{}{}
-	
+
 	// 兼容旧版搜索
 	if options.Search != "" {
-		whereClause += fmt.Sprintf(" AND (username ILIKE $%d OR email ILIKE $%d OR first_name ILIKE $%d OR last_name ILIKE $%d)", 
+		whereClause += fmt.Sprintf(" AND (username ILIKE $%d OR email ILIKE $%d OR first_name ILIKE $%d OR last_name ILIKE $%d)",
 			len(args)+1, len(args)+2, len(args)+3, len(args)+4)
 		searchPattern := "%" + options.Search + "%"
 		args = append(args, searchPattern, searchPattern, searchPattern, searchPattern)
 	}
-	
+
 	// 处理新的过滤条件
 	if options.FilterConditions != nil {
 		if conditions, ok := options.FilterConditions["conditions"].([]interface{}); ok {
@@ -388,7 +388,7 @@ func (r *userRepo) buildUserFilterQuery(options *UserListOptions) (string, []int
 					field := condMap["field"].(string)
 					operator := condMap["operator"].(string)
 					value := condMap["value"]
-					
+
 					switch operator {
 					case "equals":
 						whereClause += fmt.Sprintf(" AND %s = $%d", field, len(args)+1)
@@ -431,21 +431,21 @@ func (r *userRepo) buildUserFilterQuery(options *UserListOptions) (string, []int
 			}
 		}
 	}
-	
+
 	return whereClause, args
 }
 
 // buildUserSortQuery 构建用户排序查询条件
 func (r *userRepo) buildUserSortQuery(sortConfig map[string]interface{}) string {
 	orderClause := "ORDER BY created_at DESC" // 默认排序
-	
+
 	if sortConfig != nil {
 		if field, ok := sortConfig["field"].(string); ok {
 			direction := "ASC"
 			if dir, ok := sortConfig["direction"].(string); ok && strings.ToUpper(dir) == "DESC" {
 				direction = "DESC"
 			}
-			
+
 			// 验证字段名以防止SQL注入
 			allowedFields := []string{"id", "username", "email", "first_name", "last_name", "created_at", "updated_at", "last_login_time"}
 			fieldAllowed := false
@@ -455,13 +455,13 @@ func (r *userRepo) buildUserSortQuery(sortConfig map[string]interface{}) string 
 					break
 				}
 			}
-			
+
 			if fieldAllowed {
 				orderClause = fmt.Sprintf("ORDER BY %s %s", field, direction)
 			}
 		}
 	}
-	
+
 	return orderClause
 }
 
@@ -480,7 +480,7 @@ func (r *userRepo) ListUsersWithFilter(ctx context.Context, options interface{})
 	if opts, ok := options.(*UserListOptions); ok {
 		return r.ListUsersWithOptions(ctx, opts)
 	}
-	
+
 	// 如果不是预期的类型，返回空结果
 	return []*biz.User{}, 0, nil
 }
@@ -592,7 +592,7 @@ func (r *userRepo) AssignRoles(ctx context.Context, userID int32, roleIDs []int3
 
 	// 添加新角色
 	for _, roleID := range roleIDs {
-		_, err = tx.ExecContext(ctx, 
+		_, err = tx.ExecContext(ctx,
 			"INSERT INTO user_roles (user_id, role_id, granted_at) VALUES ($1, $2, $3)",
 			userID, roleID, time.Now())
 		if err != nil {

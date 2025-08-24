@@ -724,7 +724,7 @@ func (r *permissionRepo) CreateDocumentWorkflowState(ctx context.Context, state 
 	} else {
 		docName = fmt.Sprintf("%d", state.DocID)
 	}
-	
+
 	err := r.data.db.QueryRowContext(ctx, query,
 		state.DocType, docName, state.WorkflowState,
 		"", state.SubmittedBy, state.CreatedAt, // 使用空字符串作为workflow_action，使用SubmittedBy作为created_by
@@ -756,7 +756,7 @@ func (r *permissionRepo) GetDocumentWorkflowState(ctx context.Context, stateID i
 		&state.WorkflowState, &workflowAction,
 		&createdBy, &state.CreatedAt,
 	)
-	
+
 	if docName != "" {
 		state.DocName = &docName
 	}
@@ -779,8 +779,8 @@ func (r *permissionRepo) GetDocumentWorkflowState(ctx context.Context, stateID i
 }
 
 func (r *permissionRepo) DeleteDocumentWorkflowState(ctx context.Context, stateID int64) error {
-	_, err := r.data.db.ExecContext(ctx, 
-		"DELETE FROM document_workflow_states WHERE id = $1", 
+	_, err := r.data.db.ExecContext(ctx,
+		"DELETE FROM document_workflow_states WHERE id = $1",
 		stateID)
 	if err != nil {
 		r.log.Errorf("failed to delete document workflow state: %v", err)
@@ -956,7 +956,7 @@ func (r *permissionRepo) FilterDocumentsByPermission(ctx context.Context, userID
 		filteredDoc := make(map[string]interface{})
 		for field, value := range doc {
 			canRead := true
-			
+
 			// 检查字段权限
 			for _, fp := range fieldPermissions {
 				if fp.FieldName == field && fp.PermissionLevel > permissionLevel {
@@ -964,7 +964,7 @@ func (r *permissionRepo) FilterDocumentsByPermission(ctx context.Context, userID
 					break
 				}
 			}
-			
+
 			if canRead {
 				filteredDoc[field] = value
 			}
@@ -1053,10 +1053,10 @@ func (r *permissionRepo) GetUserEnhancedPermissions(ctx context.Context, userID 
 		enhanced := &biz.EnhancedUserPermission{
 			UserID:          perm.UserID,
 			DocType:         perm.DocType,
-			PermissionLevel: 0, // 默认权限级别
+			PermissionLevel: 0,  // 默认权限级别
 			RoleCode:        "", // 需要从用户角色中获取
 			RoleName:        "", // 需要从用户角色中获取
-			
+
 			// 权限列表，这里设置为默认值，实际应该从权限规则中计算
 			CanRead:       true,
 			CanWrite:      false,

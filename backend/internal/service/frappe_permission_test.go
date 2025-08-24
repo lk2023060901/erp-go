@@ -230,7 +230,7 @@ func TestNewFrappePermissionService(t *testing.T) {
 	logger := log.DefaultLogger
 
 	service := NewFrappePermissionService(mockUsecase, logger)
-	
+
 	assert.NotNil(t, service)
 	assert.NotNil(t, service.permissionUc)
 	assert.NotNil(t, service.log)

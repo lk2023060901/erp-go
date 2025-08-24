@@ -34,36 +34,36 @@ func NewUserService(
 
 // CreateUserRequest 创建用户请求
 type CreateUserRequest struct {
-	Username    string   `json:"username" validate:"required,min=3,max=32"`
-	Email       string   `json:"email" validate:"required,email"`
-	Password    string   `json:"password" validate:"required,min=8"`
-	FirstName   string   `json:"first_name" validate:"omitempty,min=1,max=50"`
-	LastName    string   `json:"last_name" validate:"omitempty,min=1,max=50"`
-	Phone       string   `json:"phone" validate:"omitempty,len=11"`
-	Gender      string   `json:"gender" validate:"omitempty,oneof=MALE FEMALE OTHER"`
-	IsActive    bool     `json:"is_active"`
-	RoleIDs     []int32  `json:"role_ids" validate:"omitempty,min=1"`
+	Username  string  `json:"username" validate:"required,min=3,max=32"`
+	Email     string  `json:"email" validate:"required,email"`
+	Password  string  `json:"password" validate:"required,min=8"`
+	FirstName string  `json:"first_name" validate:"omitempty,min=1,max=50"`
+	LastName  string  `json:"last_name" validate:"omitempty,min=1,max=50"`
+	Phone     string  `json:"phone" validate:"omitempty,len=11"`
+	Gender    string  `json:"gender" validate:"omitempty,oneof=MALE FEMALE OTHER"`
+	IsActive  bool    `json:"is_active"`
+	RoleIDs   []int32 `json:"role_ids" validate:"omitempty,min=1"`
 }
 
 // UpdateUserRequest 更新用户请求
 type UpdateUserRequest struct {
-	ID         int32   `json:"id" validate:"required"`
-	Email      string  `json:"email" validate:"required,email"`
-	FirstName  string  `json:"first_name" validate:"required,min=1,max=50"`
-	LastName   string  `json:"last_name" validate:"required,min=1,max=50"`
-	Phone      string  `json:"phone" validate:"omitempty,len=11"`
-	Gender     string  `json:"gender" validate:"omitempty,oneof=MALE FEMALE OTHER"`
-	BirthDate  string  `json:"birth_date" validate:"omitempty"`
-	AvatarURL  string  `json:"avatar_url"`
-	IsActive   bool    `json:"is_active"`
-	RoleIDs    []int32 `json:"role_ids"`
+	ID        int32   `json:"id" validate:"required"`
+	Email     string  `json:"email" validate:"required,email"`
+	FirstName string  `json:"first_name" validate:"required,min=1,max=50"`
+	LastName  string  `json:"last_name" validate:"required,min=1,max=50"`
+	Phone     string  `json:"phone" validate:"omitempty,len=11"`
+	Gender    string  `json:"gender" validate:"omitempty,oneof=MALE FEMALE OTHER"`
+	BirthDate string  `json:"birth_date" validate:"omitempty"`
+	AvatarURL string  `json:"avatar_url"`
+	IsActive  bool    `json:"is_active"`
+	RoleIDs   []int32 `json:"role_ids"`
 }
 
 // UserListRequest 用户列表请求
 type UserListRequest struct {
 	Page             int32                  `json:"page" validate:"min=1"`
 	Size             int32                  `json:"size" validate:"min=1,max=100"`
-	Search           string                 `json:"search"` // 兼容旧版搜索
+	Search           string                 `json:"search"`            // 兼容旧版搜索
 	FilterConditions map[string]interface{} `json:"filter_conditions"` // 新的过滤条件
 	SortConfig       map[string]interface{} `json:"sort_config"`       // 排序配置
 	FilterID         int32                  `json:"filter_id"`         // 使用保存的过滤器ID
@@ -144,16 +144,16 @@ func (s *UserService) CreateUser(ctx context.Context, req *CreateUserRequest) (*
 
 	// 创建用户
 	user := &biz.User{
-		Username:   req.Username,
-		Email:      req.Email,
-		Password:   hashedPassword,
-		FirstName:  req.FirstName,
-		LastName:   req.LastName,
-		Phone:      req.Phone,
-		Gender:     req.Gender,
-		IsActive:   req.IsActive,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  hashedPassword,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Phone:     req.Phone,
+		Gender:    req.Gender,
+		IsActive:  req.IsActive,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	createdUser, err := s.userUc.CreateUser(ctx, user)
@@ -247,7 +247,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*
 	user.Gender = req.Gender
 	user.AvatarURL = req.AvatarURL
 	user.UpdatedAt = time.Now()
-	
+
 	// 处理生日字段
 	if req.BirthDate != "" {
 		if birthDate, err := time.Parse("2006-01-02", req.BirthDate); err == nil {
@@ -348,7 +348,7 @@ func (s *UserService) ListUsers(ctx context.Context, req *UserListRequest) (*Use
 		// 获取角色和权限
 		roles, _ := s.userUc.GetUserRoles(ctx, user.ID)
 		permissions, _ := s.userUc.GetUserPermissions(ctx, user.ID)
-		
+
 		roleStrs := make([]string, len(roles))
 		for j, role := range roles {
 			roleStrs[j] = role.Code

@@ -20,14 +20,14 @@ import (
 var ProviderSet = wire.NewSet(
 	// Data layer
 	data.ProviderSet,
-	
+
 	// Business logic layer
 	biz.NewUserUsecase,
-	biz.NewRoleUsecase, 
+	biz.NewRoleUsecase,
 	biz.NewPermissionUsecase,
 	biz.NewOrganizationUsecase,
 	biz.NewAuditUsecase,
-	
+
 	// Service layer
 	service.NewAuthService,
 	service.NewUserService,
@@ -35,11 +35,11 @@ var ProviderSet = wire.NewSet(
 	// service.NewPermissionService,  // Temporarily disabled
 	service.NewOrganizationService,
 	service.NewSystemService,
-	
+
 	// Infrastructure
 	pkg.NewPasswordManager,
 	NewJWTManager,
-	
+
 	// Servers
 	NewHTTPServer,
 	NewGRPCServer,
@@ -52,13 +52,13 @@ func NewJWTManager(c *conf.Data) *pkg.JWTManager {
 	if c.Jwt != nil && c.Jwt.SecretKey != "" {
 		secretKey = c.Jwt.SecretKey
 	}
-	
+
 	// 设置访问令牌过期时间（2小时）
 	tokenDuration := time.Hour * 2
 	if c.Jwt != nil && c.Jwt.AccessTokenExpire > 0 {
 		tokenDuration = time.Duration(c.Jwt.AccessTokenExpire) * time.Second
 	}
-	
+
 	return pkg.NewJWTManager(secretKey, tokenDuration)
 }
 

@@ -19,24 +19,24 @@ import (
 
 // JWTClaims JWT载荷
 type JWTClaims struct {
-	UserID       int64    `json:"user_id"`
-	Username     string   `json:"username"`
-	Email        string   `json:"email"`
-	Roles        []string `json:"roles"`
-	SessionID    string   `json:"session_id"`
-	TokenType    string   `json:"token_type"` // access, refresh
+	UserID    int64    `json:"user_id"`
+	Username  string   `json:"username"`
+	Email     string   `json:"email"`
+	Roles     []string `json:"roles"`
+	SessionID string   `json:"session_id"`
+	TokenType string   `json:"token_type"` // access, refresh
 	jwt.RegisteredClaims
 }
 
 // AuthMiddleware 认证中间件配置
 type AuthMiddleware struct {
-	jwtSecret       string
-	permissionSvc   *biz.PermissionUsecase
-	userSvc         *biz.UserUsecase  
-	cache           cache.Cache
-	logger          *log.Helper
-	skipPaths       map[string]bool // 跳过认证的路径
-	skipMethods     map[string]bool // 跳过认证的方法
+	jwtSecret     string
+	permissionSvc *biz.PermissionUsecase
+	userSvc       *biz.UserUsecase
+	cache         cache.Cache
+	logger        *log.Helper
+	skipPaths     map[string]bool // 跳过认证的路径
+	skipMethods   map[string]bool // 跳过认证的方法
 }
 
 // NewAuthMiddleware 创建认证中间件
@@ -54,19 +54,19 @@ func NewAuthMiddleware(
 		cache:         cache,
 		logger:        log.NewHelper(logger),
 		skipPaths: map[string]bool{
-			"/health":             true,
-			"/v1/auth/login":      true,
-			"/v1/auth/register":   true,
-			"/v1/auth/refresh":    true,
+			"/health":                 true,
+			"/v1/auth/login":          true,
+			"/v1/auth/register":       true,
+			"/v1/auth/refresh":        true,
 			"/v1/auth/reset-password": true,
-			"/v1/auth/send-code":  true,
+			"/v1/auth/send-code":      true,
 		},
 		skipMethods: map[string]bool{
-			"HealthCheck": true,
-			"Login":       true,
-			"Register":    true,
-			"RefreshToken": true,
-			"ResetPassword": true,
+			"HealthCheck":          true,
+			"Login":                true,
+			"Register":             true,
+			"RefreshToken":         true,
+			"ResetPassword":        true,
 			"SendVerificationCode": true,
 		},
 	}
@@ -309,7 +309,7 @@ func (m *AuthMiddleware) generatePermissionCode(tr transport.Transporter) string
 			// 解析服务名
 			serviceParts := strings.Split(servicePart, ".")
 			if len(serviceParts) >= 2 {
-				module := serviceParts[1] // user
+				module := serviceParts[1]              // user
 				action := m.methodToAction(methodPart) // get
 				return fmt.Sprintf("%s.%s", module, action)
 			}
@@ -329,8 +329,8 @@ func (m *AuthMiddleware) httpToPermissionCode(method, path string) string {
 	// 路径模式匹配和权限编码映射
 	pathMappings := map[string]map[string]string{
 		"/v1/users": {
-			"GET":    "user.list",
-			"POST":   "user.create",
+			"GET":  "user.list",
+			"POST": "user.create",
 		},
 		"/v1/users/{id}": {
 			"GET":    "user.view",
@@ -366,7 +366,7 @@ func (m *AuthMiddleware) httpToPermissionCode(method, path string) string {
 
 	// 规范化路径（替换参数为通用模式）
 	normalizedPath := m.normalizePath(path)
-	
+
 	if methodMap, exists := pathMappings[normalizedPath]; exists {
 		if permCode, exists := methodMap[strings.ToUpper(method)]; exists {
 			return permCode
@@ -445,7 +445,7 @@ func (m *AuthMiddleware) methodToAction(method string) string {
 func (m *AuthMiddleware) checkUserPermission(ctx context.Context, userID int64, permissionCode string) (bool, error) {
 	// 先从缓存检查
 	cacheKey := fmt.Sprintf("user_permission:%d:%s", userID, permissionCode)
-	
+
 	if result, err := m.cache.Get(ctx, cacheKey); err == nil && result != "" {
 		return result == "true", nil
 	}
@@ -470,7 +470,7 @@ func (m *AuthMiddleware) checkUserPermission(ctx context.Context, userID int64, 
 func (m *AuthMiddleware) checkFrappePermission(ctx context.Context, userID int64, documentType, action string, permissionLevel int) (bool, error) {
 	// 从缓存检查
 	cacheKey := fmt.Sprintf("frappe_permission:%d:%s:%s:%d", userID, documentType, action, permissionLevel)
-	
+
 	if result, err := m.cache.Get(ctx, cacheKey); err == nil && result != "" {
 		return result == "true", nil
 	}
@@ -503,7 +503,7 @@ func (m *AuthMiddleware) checkFieldPermission(ctx context.Context, userID int64,
 	if permissionLevel < 1 || permissionLevel > 9 {
 		return false, fmt.Errorf("invalid permission level for field: %d", permissionLevel)
 	}
-	
+
 	return m.checkFrappePermission(ctx, userID, documentType, action, permissionLevel)
 }
 
@@ -511,7 +511,7 @@ func (m *AuthMiddleware) checkFieldPermission(ctx context.Context, userID int64,
 func (m *AuthMiddleware) getUserPermissionLevel(ctx context.Context, userID int64, documentType string) (int, error) {
 	// 从缓存检查
 	cacheKey := fmt.Sprintf("user_permission_level:%d:%s", userID, documentType)
-	
+
 	if result, err := m.cache.Get(ctx, cacheKey); err == nil && result != "" {
 		var level int
 		if _, err := fmt.Sscanf(result, "%d", &level); err == nil {
@@ -549,7 +549,7 @@ func (m *AuthMiddleware) PermissionMiddleware(requiredDocType string, requiredAc
 			}
 
 			if !hasPermission {
-				return nil, errors.Forbidden("INSUFFICIENT_PERMISSION", 
+				return nil, errors.Forbidden("INSUFFICIENT_PERMISSION",
 					fmt.Sprintf("用户无权限访问 %s 的 %s 操作(级别:%d)", requiredDocType, requiredAction, requiredLevel))
 			}
 
@@ -563,7 +563,7 @@ func (m *AuthMiddleware) DocumentPermissionMiddleware(requiredDocType string, re
 	return m.PermissionMiddleware(requiredDocType, requiredAction, 0)
 }
 
-// FieldPermissionMiddleware 返回字段级权限检查中间件  
+// FieldPermissionMiddleware 返回字段级权限检查中间件
 func (m *AuthMiddleware) FieldPermissionMiddleware(requiredDocType string, requiredAction string, requiredLevel int) middleware.Middleware {
 	if requiredLevel < 1 || requiredLevel > 9 {
 		panic(fmt.Sprintf("invalid field permission level: %d", requiredLevel))

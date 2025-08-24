@@ -140,11 +140,11 @@ type RegisterRequest struct {
 
 // LoginResponse 登录响应
 type LoginResponse struct {
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
-	ExpiresIn    int64     `json:"expires_in"`
-	TokenType    string    `json:"token_type"`
-	User         *User     `json:"user"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+	TokenType    string `json:"token_type"`
+	User         *User  `json:"user"`
 }
 
 // UserRepo 用户仓储接口
@@ -183,12 +183,11 @@ type RoleRepo interface {
 	UpdateRole(ctx context.Context, role *Role) (*Role, error)
 	DeleteRole(ctx context.Context, id int32) error
 	ListRoles(ctx context.Context, page, size int32, search string, isEnabled *bool, sortField, sortOrder string) ([]*Role, int32, error)
-	
+
 	GetRolePermissions(ctx context.Context, roleID int32) ([]*Permission, error)
 	AssignPermissions(ctx context.Context, roleID int32, permissionIDs []int32) error
 	GetEnabledRoles(ctx context.Context) ([]*Role, error)
 }
-
 
 // OrganizationRepo 组织仓储接口
 type OrganizationRepo interface {
@@ -335,8 +334,6 @@ func (uc *RoleUsecase) GetEnabledRoles(ctx context.Context) ([]*Role, error) {
 	return uc.repo.GetEnabledRoles(ctx)
 }
 
-
-
 // OrganizationUsecase 组织用例
 type OrganizationUsecase struct {
 	repo OrganizationRepo
@@ -385,15 +382,15 @@ func (uc *OrganizationUsecase) GetEnabledOrganizations(ctx context.Context) ([]*
 
 // 操作日志列表请求
 type OperationLogListRequest struct {
-	Page      int32      `json:"page"`
-	Size      int32      `json:"size"`
-	UserID    *int32     `json:"user_id"`
-	Username  string     `json:"username"`
-	Action    string     `json:"action"`
-	Resource  string     `json:"resource"`
-	Status    string     `json:"status"`
-	StartTime time.Time  `json:"start_time"`
-	EndTime   time.Time  `json:"end_time"`
+	Page      int32     `json:"page"`
+	Size      int32     `json:"size"`
+	UserID    *int32    `json:"user_id"`
+	Username  string    `json:"username"`
+	Action    string    `json:"action"`
+	Resource  string    `json:"resource"`
+	Status    string    `json:"status"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
 }
 
 // 操作统计信息
@@ -499,7 +496,7 @@ func (uc *UserUsecase) Login(ctx context.Context, req *LoginRequest) (*LoginResp
 
 	// 生成JWT令牌（这里需要实现JWT服务）
 	// TODO: 实现JWT令牌生成
-	
+
 	return &LoginResponse{
 		AccessToken:  "mock-access-token",
 		RefreshToken: "mock-refresh-token",
@@ -551,18 +548,18 @@ var (
 	ErrInvalidTwoFactor   = &BizError{Code: 401, Message: "Invalid two-factor authentication code"}
 	ErrUsernameExists     = &BizError{Code: 400, Message: "Username already exists"}
 	ErrEmailExists        = &BizError{Code: 400, Message: "Email already exists"}
-	
+
 	// 角色相关错误
-	ErrRoleCodeExists        = &BizError{Code: 400, Message: "Role code already exists"}
-	ErrRoleNameExists        = &BizError{Code: 400, Message: "Role name already exists"}
+	ErrRoleCodeExists         = &BizError{Code: 400, Message: "Role code already exists"}
+	ErrRoleNameExists         = &BizError{Code: 400, Message: "Role name already exists"}
 	ErrCannotDeleteSystemRole = &BizError{Code: 400, Message: "Cannot delete system role"}
-	ErrRoleInUse             = &BizError{Code: 400, Message: "Role is in use"}
-	
+	ErrRoleInUse              = &BizError{Code: 400, Message: "Role is in use"}
+
 	// 权限相关错误
 	ErrPermissionCodeExists  = &BizError{Code: 400, Message: "Permission code already exists"}
 	ErrPermissionHasChildren = &BizError{Code: 400, Message: "Permission has child permissions"}
 	ErrPermissionInUse       = &BizError{Code: 400, Message: "Permission is in use"}
-	
+
 	// 组织相关错误
 	ErrOrganizationCodeExists  = &BizError{Code: 400, Message: "Organization code already exists"}
 	ErrOrganizationHasChildren = &BizError{Code: 400, Message: "Organization has child organizations"}

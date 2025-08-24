@@ -28,26 +28,26 @@ func TestPermissionSystemIntegration(t *testing.T) {
 
 	// 插入测试基础数据
 	setupTestBaseData(t, db)
-	
-	// 创建依赖  
+
+	// 创建依赖
 	logger := log.DefaultLogger
 	permissionCache := cache.NewMemoryPermissionCache(logger)
-	
+
 	// 使用相同数据库路径创建 Data 实例
 	dataInstance, cleanup2, err := data.NewData(&conf.Data{
 		Database: &conf.Database{Driver: "sqlite3", Source: dbPath},
-		Redis: &conf.Redis{Addr: "localhost:6379", Password: "", DB: 0},
+		Redis:    &conf.Redis{Addr: "localhost:6379", Password: "", DB: 0},
 	}, logger)
 	require.NoError(t, err)
 	defer cleanup2()
-	
+
 	// 创建Repository
 	permissionRepo := data.NewPermissionRepo(dataInstance, logger)
 	cachedPermissionRepo := data.NewCachedPermissionRepo(permissionRepo, permissionCache, logger)
-	
+
 	// 创建Usecase
 	permissionUsecase := biz.NewPermissionUsecase(cachedPermissionRepo, logger)
-	
+
 	// 创建Service
 	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
 
@@ -75,38 +75,38 @@ func TestPermissionSystemIntegration(t *testing.T) {
 func setupTestDatabase(t *testing.T) (*sql.DB, string, func()) {
 	// 创建临时数据库文件
 	dbPath := fmt.Sprintf("/tmp/test_permission_%d.db", time.Now().Unix())
-	
+
 	db, err := sql.Open("sqlite3", dbPath)
 	require.NoError(t, err)
 
 	// 先手动执行核心系统表结构 SQL
 	coreSchemaSQL, err := os.ReadFile("../../../database/schema/core_system.sql")
 	require.NoError(t, err)
-	
+
 	_, err = db.Exec(string(coreSchemaSQL))
 	require.NoError(t, err)
 
 	// 执行权限系统表结构 SQL
 	permissionSchemaSQL, err := os.ReadFile("../../../database/schema/permission_system.sql")
 	require.NoError(t, err)
-	
+
 	_, err = db.Exec(string(permissionSchemaSQL))
 	require.NoError(t, err)
-	
+
 	// 执行核心系统种子数据 SQL
 	coreSeedSQL, err := os.ReadFile("../../../database/data/core_seed.sql")
 	require.NoError(t, err)
-	
+
 	_, err = db.Exec(string(coreSeedSQL))
 	require.NoError(t, err)
-	
+
 	// 执行权限系统种子数据 SQL
 	permissionSeedSQL, err := os.ReadFile("../../../database/data/permission_seed.sql")
 	require.NoError(t, err)
-	
+
 	_, err = db.Exec(string(permissionSeedSQL))
 	require.NoError(t, err)
-	
+
 	cleanup := func() {
 		db.Close()
 		os.Remove(dbPath)
@@ -262,13 +262,13 @@ func testPermissionRuleManagement(t *testing.T, ctx context.Context, svc *servic
 func testUserPermissionManagement(t *testing.T, ctx context.Context, svc *service.FrappePermissionService, db *sql.DB) {
 	// 创建用户权限
 	createReq := &service.CreateUserPermissionRequest{
-		UserID:           2,
-		DocType:          "TestDocument",
-		DocumentName:     "testdoc",
-		Condition:        "",
-		ApplicableFor:    stringPtr("TestDocument"),
-		HideDescendants:  false,
-		IsDefault:        true,
+		UserID:          2,
+		DocType:         "TestDocument",
+		DocumentName:    "testdoc",
+		Condition:       "",
+		ApplicableFor:   stringPtr("TestDocument"),
+		HideDescendants: false,
+		IsDefault:       true,
 	}
 
 	userPerm, err := svc.CreateUserPermission(ctx, createReq)
@@ -284,13 +284,13 @@ func testUserPermissionManagement(t *testing.T, ctx context.Context, svc *servic
 
 	// 更新用户权限
 	updateReq := &service.CreateUserPermissionRequest{
-		UserID:           userPerm.UserID,
-		DocType:          userPerm.DocType,
-		DocumentName:     userPerm.DocumentName,
-		Condition:        userPerm.Condition,
-		ApplicableFor:    stringPtr("TestDocument"),
-		HideDescendants:  true, // 更新为隐藏子项
-		IsDefault:        true,
+		UserID:          userPerm.UserID,
+		DocType:         userPerm.DocType,
+		DocumentName:    userPerm.DocumentName,
+		Condition:       userPerm.Condition,
+		ApplicableFor:   stringPtr("TestDocument"),
+		HideDescendants: true, // 更新为隐藏子项
+		IsDefault:       true,
 	}
 
 	updatedUserPerm, err := svc.UpdateUserPermission(ctx, userPerm.ID, updateReq)
@@ -385,14 +385,14 @@ func TestPermissionSystemLoadTest(t *testing.T) {
 	permissionCache := cache.NewMemoryPermissionCache(logger)
 	dataInstance, cleanup2, err := data.NewData(&conf.Data{
 		Database: &conf.Database{Driver: "sqlite3", Source: dbPath},
-		Redis: &conf.Redis{Addr: "localhost:6379", Password: "", DB: 0},
+		Redis:    &conf.Redis{Addr: "localhost:6379", Password: "", DB: 0},
 	}, logger)
 	require.NoError(t, err)
 	defer cleanup2()
-	
+
 	permissionRepo := data.NewPermissionRepo(dataInstance, logger)
 	cachedPermissionRepo := data.NewCachedPermissionRepo(permissionRepo, permissionCache, logger)
-	
+
 	permissionUsecase := biz.NewPermissionUsecase(cachedPermissionRepo, logger)
 	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
 
@@ -417,7 +417,7 @@ func TestPermissionSystemLoadTest(t *testing.T) {
 			go func() {
 				checkReq := &service.CheckDocumentPermissionRequest{
 					UserID:     1,
-					DocType:    "User", 
+					DocType:    "User",
 					Permission: "read",
 				}
 
@@ -433,7 +433,7 @@ func TestPermissionSystemLoadTest(t *testing.T) {
 		// 收集结果
 		successCount := 0
 		errorCount := 0
-		
+
 		for i := 0; i < numConcurrent; i++ {
 			select {
 			case hasPermission := <-results:
@@ -464,16 +464,16 @@ func BenchmarkPermissionCheck(b *testing.B) {
 	permissionCache := cache.NewMemoryPermissionCache(logger)
 	dataInstance, cleanup2, err := data.NewData(&conf.Data{
 		Database: &conf.Database{Driver: "sqlite3", Source: dbPath},
-		Redis: &conf.Redis{Addr: "localhost:6379", Password: "", DB: 0},
+		Redis:    &conf.Redis{Addr: "localhost:6379", Password: "", DB: 0},
 	}, logger)
 	if err != nil {
 		b.Fatal(err)
 	}
 	defer cleanup2()
-	
+
 	permissionRepo := data.NewPermissionRepo(dataInstance, logger)
 	cachedPermissionRepo := data.NewCachedPermissionRepo(permissionRepo, permissionCache, logger)
-	
+
 	permissionUsecase := biz.NewPermissionUsecase(cachedPermissionRepo, logger)
 	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
 
@@ -509,7 +509,7 @@ func BenchmarkPermissionCheck(b *testing.B) {
 // setupBenchmarkDatabase 设置基准测试数据库
 func setupBenchmarkDatabase(b *testing.B) (*sql.DB, string, func()) {
 	dbPath := fmt.Sprintf("/tmp/benchmark_permission_%d.db", time.Now().Unix())
-	
+
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		b.Fatal(err)
@@ -520,39 +520,39 @@ func setupBenchmarkDatabase(b *testing.B) (*sql.DB, string, func()) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	_, err = db.Exec(string(coreSchemaSQL))
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	// 初始化权限系统数据库结构
 	permissionSchemaSQL, err := os.ReadFile("../../../database/schema/permission_system.sql")
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	_, err = db.Exec(string(permissionSchemaSQL))
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	// 初始化种子数据
 	coreSeedSQL, err := os.ReadFile("../../../database/data/core_seed.sql")
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	_, err = db.Exec(string(coreSeedSQL))
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	permissionSeedSQL, err := os.ReadFile("../../../database/data/permission_seed.sql")
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	_, err = db.Exec(string(permissionSeedSQL))
 	if err != nil {
 		b.Fatal(err)

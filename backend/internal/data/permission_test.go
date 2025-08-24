@@ -11,12 +11,12 @@ import (
 
 func TestNewPermissionRepo(t *testing.T) {
 	logger := log.DefaultLogger
-	
+
 	// 创建权限仓库
 	repo := &permissionRepo{
 		log: log.NewHelper(logger),
 	}
-	
+
 	assert.NotNil(t, repo)
 	assert.NotNil(t, repo.log)
 }
@@ -42,7 +42,7 @@ func TestDocType_Validate(t *testing.T) {
 			name: "empty name should fail",
 			docType: &biz.DocType{
 				Name:   "",
-				Label:  "Test Document", 
+				Label:  "Test Document",
 				Module: "TestModule",
 			},
 			wantErr: true,
@@ -85,10 +85,10 @@ func TestDocType_Validate(t *testing.T) {
 
 func TestPermissionRule_Validate(t *testing.T) {
 	tests := []struct {
-		name string
-		rule *biz.PermissionRule
+		name    string
+		rule    *biz.PermissionRule
 		wantErr bool
-		errMsg string
+		errMsg  string
 	}{
 		{
 			name: "valid document level permission",
@@ -175,10 +175,10 @@ func TestPermissionRule_Validate(t *testing.T) {
 
 func TestFieldPermissionLevel_Validate(t *testing.T) {
 	tests := []struct {
-		name     string
-		field    *biz.FieldPermissionLevel
-		wantErr  bool
-		errMsg   string
+		name    string
+		field   *biz.FieldPermissionLevel
+		wantErr bool
+		errMsg  string
 	}{
 		{
 			name: "valid field permission",

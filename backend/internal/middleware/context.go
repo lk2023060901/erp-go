@@ -158,10 +158,10 @@ func GetUserAgentFromContext(ctx context.Context) string {
 // GetCurrentUser 获取当前用户信息
 func GetCurrentUser(ctx context.Context) *CurrentUser {
 	return &CurrentUser{
-		ID:       GetUserIDFromContext(ctx),
-		Username: GetUsernameFromContext(ctx),
-		Email:    GetUserEmailFromContext(ctx),
-		Roles:    GetUserRolesFromContext(ctx),
+		ID:        GetUserIDFromContext(ctx),
+		Username:  GetUsernameFromContext(ctx),
+		Email:     GetUserEmailFromContext(ctx),
+		Roles:     GetUserRolesFromContext(ctx),
 		SessionID: GetSessionIDFromContext(ctx),
 	}
 }

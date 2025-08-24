@@ -27,21 +27,21 @@ func NewRoleService(roleUc *biz.RoleUsecase, logger log.Logger) *RoleService {
 
 // CreateRoleRequest 创建角色请求
 type CreateRoleRequest struct {
-	Name        string  `json:"name" validate:"required,min=2,max=50"`
-	Code        string  `json:"code" validate:"required,min=2,max=50"`
-	Description string  `json:"description"`
-	IsEnabled   bool    `json:"is_enabled"`
-	SortOrder   int32   `json:"sort_order"`
+	Name          string  `json:"name" validate:"required,min=2,max=50"`
+	Code          string  `json:"code" validate:"required,min=2,max=50"`
+	Description   string  `json:"description"`
+	IsEnabled     bool    `json:"is_enabled"`
+	SortOrder     int32   `json:"sort_order"`
 	PermissionIDs []int32 `json:"permission_ids"`
 }
 
 // UpdateRoleRequest 更新角色请求
 type UpdateRoleRequest struct {
-	ID          int32   `json:"id" validate:"required"`
-	Name        string  `json:"name" validate:"required,min=2,max=50"`
-	Description string  `json:"description"`
-	IsEnabled   bool    `json:"is_enabled"`
-	SortOrder   int32   `json:"sort_order"`
+	ID            int32   `json:"id" validate:"required"`
+	Name          string  `json:"name" validate:"required,min=2,max=50"`
+	Description   string  `json:"description"`
+	IsEnabled     bool    `json:"is_enabled"`
+	SortOrder     int32   `json:"sort_order"`
 	PermissionIDs []int32 `json:"permission_ids"`
 }
 
@@ -71,34 +71,34 @@ type AssignPermissionsRequest struct {
 
 // RoleInfo 角色信息
 type RoleInfo struct {
-	ID           int32              `json:"id"`
-	Name         string             `json:"name"`
-	Code         string             `json:"code"`
-	Description  string             `json:"description"`
-	IsSystemRole bool               `json:"is_system_role"`
-	IsEnabled    bool               `json:"is_enabled"`
-	SortOrder    int32              `json:"sort_order"`
-	CreatedAt    time.Time          `json:"created_at"`
-	UpdatedAt    time.Time          `json:"updated_at"`
-	Permissions  []*PermissionInfo  `json:"permissions,omitempty"`
+	ID           int32             `json:"id"`
+	Name         string            `json:"name"`
+	Code         string            `json:"code"`
+	Description  string            `json:"description"`
+	IsSystemRole bool              `json:"is_system_role"`
+	IsEnabled    bool              `json:"is_enabled"`
+	SortOrder    int32             `json:"sort_order"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
+	Permissions  []*PermissionInfo `json:"permissions,omitempty"`
 }
 
 // PermissionInfo 权限信息
 type PermissionInfo struct {
-	ID          int32              `json:"id"`
-	ParentID    *int32             `json:"parent_id"`
-	Name        string             `json:"name"`
-	Code        string             `json:"code"`
-	Resource    string             `json:"resource"`
-	Action      string             `json:"action"`
-	Module      string             `json:"module"`
-	Description string             `json:"description"`
-	IsMenu      bool               `json:"is_menu"`
-	Path        string             `json:"path"`
-	SortOrder   int32              `json:"sort_order"`
-	CreatedAt   time.Time          `json:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at"`
-	Children    []*PermissionInfo  `json:"children,omitempty"`
+	ID          int32             `json:"id"`
+	ParentID    *int32            `json:"parent_id"`
+	Name        string            `json:"name"`
+	Code        string            `json:"code"`
+	Resource    string            `json:"resource"`
+	Action      string            `json:"action"`
+	Module      string            `json:"module"`
+	Description string            `json:"description"`
+	IsMenu      bool              `json:"is_menu"`
+	Path        string            `json:"path"`
+	SortOrder   int32             `json:"sort_order"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
+	Children    []*PermissionInfo `json:"children,omitempty"`
 }
 
 // CreateRole 创建角色
@@ -113,14 +113,14 @@ func (s *RoleService) CreateRole(ctx context.Context, req *CreateRoleRequest) (*
 
 	// 创建角色
 	role := &biz.Role{
-		Name:        req.Name,
-		Code:        req.Code,
-		Description: req.Description,
+		Name:         req.Name,
+		Code:         req.Code,
+		Description:  req.Description,
 		IsSystemRole: false, // 用户创建的角色都不是系统角色
-		IsEnabled:   req.IsEnabled,
-		SortOrder:   req.SortOrder,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		IsEnabled:    req.IsEnabled,
+		SortOrder:    req.SortOrder,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	createdRole, err := s.roleUc.CreateRole(ctx, role)

@@ -26,11 +26,9 @@ var (
 	id, _ = os.Hostname()
 )
 
-
 func init() {
 	flag.StringVar(&flagconf, "conf", "./configs", "config path, eg: -conf config.yaml")
 }
-
 
 func main() {
 	flag.Parse()
@@ -61,19 +59,19 @@ func main() {
 		log.Errorf("Failed to scan config: %v", err)
 		panic(err)
 	}
-	
+
 	// 调试配置内容
 	logger.Log(log.LevelInfo, "msg", "Config path: "+flagconf)
 	logger.Log(log.LevelInfo, "msg", fmt.Sprintf("Loaded config - Server: %+v", bc.Server))
 	logger.Log(log.LevelInfo, "msg", fmt.Sprintf("Loaded config - Data: %+v", bc.Data))
-	
+
 	// 添加配置验证
 	if bc.Server == nil {
 		logger.Log(log.LevelError, "msg", "Server configuration is missing")
 		panic("Server configuration is missing")
 	}
 	if bc.Server.Http == nil {
-		panic("HTTP server configuration is missing")  
+		panic("HTTP server configuration is missing")
 	}
 	if bc.Server.Grpc == nil {
 		panic("gRPC server configuration is missing")
@@ -91,4 +89,3 @@ func main() {
 		panic(err)
 	}
 }
-

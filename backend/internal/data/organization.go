@@ -383,7 +383,7 @@ func (r *organizationRepo) AssignUsers(ctx context.Context, orgID int32, userIDs
 
 	// 添加新关联
 	for _, userID := range userIDs {
-		_, err = tx.ExecContext(ctx, 
+		_, err = tx.ExecContext(ctx,
 			"INSERT INTO user_organizations (user_id, organization_id, created_at) VALUES ($1, $2, $3)",
 			userID, orgID, time.Now())
 		if err != nil {

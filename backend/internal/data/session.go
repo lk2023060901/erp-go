@@ -110,7 +110,7 @@ func (r *sessionRepo) GetUserSession(ctx context.Context, userID int64, sessionI
 // UpdateSessionActivity 更新会话活动时间
 func (r *sessionRepo) UpdateSessionActivity(ctx context.Context, sessionID string) error {
 	query := `UPDATE user_sessions SET last_activity_at = $1 WHERE id = $2`
-	
+
 	_, err := r.data.db.ExecContext(ctx, query, time.Now(), sessionID)
 	if err != nil {
 		r.log.Errorf("failed to update session activity: %v", err)
@@ -123,7 +123,7 @@ func (r *sessionRepo) UpdateSessionActivity(ctx context.Context, sessionID strin
 // DeactivateSession 停用会话
 func (r *sessionRepo) DeactivateSession(ctx context.Context, sessionID string) error {
 	query := `UPDATE user_sessions SET is_active = false WHERE id = $1`
-	
+
 	_, err := r.data.db.ExecContext(ctx, query, sessionID)
 	if err != nil {
 		r.log.Errorf("failed to deactivate session: %v", err)
@@ -136,7 +136,7 @@ func (r *sessionRepo) DeactivateSession(ctx context.Context, sessionID string) e
 // DeactivateUserSessions 停用用户所有会话
 func (r *sessionRepo) DeactivateUserSessions(ctx context.Context, userID int64) error {
 	query := `UPDATE user_sessions SET is_active = false WHERE user_id = $1`
-	
+
 	_, err := r.data.db.ExecContext(ctx, query, userID)
 	if err != nil {
 		r.log.Errorf("failed to deactivate user sessions: %v", err)
@@ -190,7 +190,7 @@ func (r *sessionRepo) ListUserSessions(ctx context.Context, userID int64) ([]*bi
 // CleanupExpiredSessions 清理过期会话
 func (r *sessionRepo) CleanupExpiredSessions(ctx context.Context) error {
 	query := `DELETE FROM user_sessions WHERE expires_at < $1`
-	
+
 	result, err := r.data.db.ExecContext(ctx, query, time.Now())
 	if err != nil {
 		r.log.Errorf("failed to cleanup expired sessions: %v", err)

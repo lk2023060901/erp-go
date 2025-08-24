@@ -281,14 +281,14 @@ func TestClearUserCache(t *testing.T) {
 	ctx := context.Background()
 
 	userID := int64(999)
-	
+
 	// 设置用户相关的多个缓存
 	err := cache.SetUserPermissions(ctx, userID, []string{"perm1"}, time.Hour)
 	assert.NoError(t, err)
-	
+
 	err = cache.SetUserRoles(ctx, userID, []string{"role1"}, time.Hour)
 	assert.NoError(t, err)
-	
+
 	err = cache.SetUserPermissionLevel(ctx, userID, "TestDoc", 5, time.Hour)
 	assert.NoError(t, err)
 
@@ -321,7 +321,7 @@ func TestCacheStats(t *testing.T) {
 	// 设置一些测试数据
 	err := cache.SetUserPermissions(ctx, 1, []string{"perm1"}, time.Hour)
 	assert.NoError(t, err)
-	
+
 	err = cache.SetUserRoles(ctx, 1, []string{"role1"}, time.Hour)
 	assert.NoError(t, err)
 
@@ -329,7 +329,7 @@ func TestCacheStats(t *testing.T) {
 	stats, err := cache.GetCacheStats(ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, stats)
-	
+
 	// 验证统计信息包含预期字段
 	assert.Contains(t, stats, "user_permissions")
 	assert.Contains(t, stats, "user_roles")

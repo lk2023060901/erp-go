@@ -97,13 +97,13 @@ type CleanupLogsRequest struct {
 
 // SystemInfo 系统信息
 type SystemInfo struct {
-	Version       string    `json:"version"`
-	StartTime     time.Time `json:"start_time"`
-	Uptime        string    `json:"uptime"`
-	DatabaseConnections int32  `json:"database_connections"`
-	RedisConnections    int32  `json:"redis_connections"`
-	MemoryUsage         string `json:"memory_usage"`
-	CPUUsage            string `json:"cpu_usage"`
+	Version             string    `json:"version"`
+	StartTime           time.Time `json:"start_time"`
+	Uptime              string    `json:"uptime"`
+	DatabaseConnections int32     `json:"database_connections"`
+	RedisConnections    int32     `json:"redis_connections"`
+	MemoryUsage         string    `json:"memory_usage"`
+	CPUUsage            string    `json:"cpu_usage"`
 }
 
 // GetOperationLogs 获取操作日志列表
@@ -318,8 +318,8 @@ func (s *SystemService) GetSystemInfo(ctx context.Context) (*SystemInfo, error) 
 		Version:             "1.0.0",
 		StartTime:           startTime,
 		Uptime:              uptime.String(),
-		DatabaseConnections: 10,  // TODO: 实际获取数据库连接数
-		RedisConnections:    5,   // TODO: 实际获取Redis连接数
+		DatabaseConnections: 10,      // TODO: 实际获取数据库连接数
+		RedisConnections:    5,       // TODO: 实际获取Redis连接数
 		MemoryUsage:         "512MB", // TODO: 实际获取内存使用情况
 		CPUUsage:            "15%",   // TODO: 实际获取CPU使用情况
 	}, nil

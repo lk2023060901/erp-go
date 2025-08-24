@@ -22,7 +22,7 @@ func (s *HTTPServer) handleListUsers(w http.ResponseWriter, r *http.Request) {
 
 	page, _ := strconv.ParseInt(pageStr, 10, 32)
 	size, _ := strconv.ParseInt(sizeStr, 10, 32)
-	
+
 	if page <= 0 {
 		page = 1
 	}
@@ -215,14 +215,14 @@ func (s *HTTPServer) handleListRoles(w http.ResponseWriter, r *http.Request) {
 
 	page, _ := strconv.ParseInt(pageStr, 10, 32)
 	size, _ := strconv.ParseInt(sizeStr, 10, 32)
-	
+
 	if page <= 0 {
 		page = 1
 	}
 	if size <= 0 {
 		size = 10
 	}
-	
+
 	var isEnabled *bool
 	if isEnabledStr != "" {
 		if enabled, err := strconv.ParseBool(isEnabledStr); err == nil {
@@ -371,13 +371,13 @@ func (s *HTTPServer) handleListPermissions(w http.ResponseWriter, r *http.Reques
 	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
 	return
 	/*
-	resp, err := s.permissionService.ListPermissions(r.Context())
-	if err != nil {
-		s.sendError(w, err)
-		return
-	}
+		resp, err := s.permissionService.ListPermissions(r.Context())
+		if err != nil {
+			s.sendError(w, err)
+			return
+		}
 
-	s.sendResponse(w, http.StatusOK, resp)
+		s.sendResponse(w, http.StatusOK, resp)
 	*/
 }
 
@@ -385,7 +385,7 @@ func (s *HTTPServer) handleListPermissions(w http.ResponseWriter, r *http.Reques
 func (s *HTTPServer) handleCreatePermission(w http.ResponseWriter, r *http.Request) {
 	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
 	return
-	
+
 	/*var req service.CreatePermissionRequest
 	if err := s.parseJSON(r, &req); err != nil {
 		s.sendError(w, err)
@@ -427,7 +427,7 @@ func (s *HTTPServer) handleGetPermission(w http.ResponseWriter, r *http.Request)
 func (s *HTTPServer) handleUpdatePermission(w http.ResponseWriter, r *http.Request) {
 	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
 	return
-	
+
 	/*vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 32)
 	if err != nil {
@@ -694,7 +694,7 @@ func (s *HTTPServer) handleAssignOrganizationUsers(w http.ResponseWriter, r *htt
 // handleGetOperationLogs 获取操作日志列表
 func (s *HTTPServer) handleGetOperationLogs(w http.ResponseWriter, r *http.Request) {
 	var req service.OperationLogListRequest
-	
+
 	// 解析查询参数
 	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
 		if page, err := strconv.ParseInt(pageStr, 10, 32); err == nil {
@@ -710,7 +710,7 @@ func (s *HTTPServer) handleGetOperationLogs(w http.ResponseWriter, r *http.Reque
 	req.Action = r.URL.Query().Get("action")
 	req.Resource = r.URL.Query().Get("resource")
 	req.Status = r.URL.Query().Get("status")
-	
+
 	if startTimeStr := r.URL.Query().Get("start_time"); startTimeStr != "" {
 		if startTime, err := time.Parse(time.RFC3339, startTimeStr); err == nil {
 			req.StartTime = startTime
@@ -752,7 +752,7 @@ func (s *HTTPServer) handleGetOperationLog(w http.ResponseWriter, r *http.Reques
 // handleGetOperationStatistics 获取操作统计
 func (s *HTTPServer) handleGetOperationStatistics(w http.ResponseWriter, r *http.Request) {
 	var req service.StatisticsRequest
-	
+
 	if startTimeStr := r.URL.Query().Get("start_time"); startTimeStr != "" {
 		if startTime, err := time.Parse(time.RFC3339, startTimeStr); err == nil {
 			req.StartTime = startTime
@@ -783,7 +783,7 @@ func (s *HTTPServer) handleGetOperationStatistics(w http.ResponseWriter, r *http
 func (s *HTTPServer) handleGetTopActiveUsers(w http.ResponseWriter, r *http.Request) {
 	var req service.StatisticsRequest
 	limit := int32(10)
-	
+
 	if startTimeStr := r.URL.Query().Get("start_time"); startTimeStr != "" {
 		if startTime, err := time.Parse(time.RFC3339, startTimeStr); err == nil {
 			req.StartTime = startTime
@@ -830,7 +830,7 @@ func (s *HTTPServer) handleCleanupLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.sendResponse(w, http.StatusOK, map[string]interface{}{
-		"message": "日志清理完成",
+		"message":       "日志清理完成",
 		"affected_rows": affected,
 	})
 }

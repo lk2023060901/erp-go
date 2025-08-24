@@ -73,7 +73,7 @@ func (pm *PasswordManager) GenerateRandomPassword(length int) string {
 
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
 	password := make([]byte, length)
-	
+
 	for i := range password {
 		randomBytes := make([]byte, 1)
 		rand.Read(randomBytes)

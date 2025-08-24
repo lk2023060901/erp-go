@@ -15,7 +15,7 @@ type GRPCServer struct {
 // NewGRPCServer 创建GRPC服务器
 func NewGRPCServer(c *conf.Server, logger log.Logger) *GRPCServer {
 	var opts = []grpc.ServerOption{}
-	
+
 	if c.Grpc.Network != "" {
 		opts = append(opts, grpc.Network(c.Grpc.Network))
 	}
@@ -26,9 +26,9 @@ func NewGRPCServer(c *conf.Server, logger log.Logger) *GRPCServer {
 		timeout := c.Grpc.GetTimeout()
 		opts = append(opts, grpc.Timeout(timeout))
 	}
-	
+
 	srv := grpc.NewServer(opts...)
-	
+
 	return &GRPCServer{
 		Server: srv,
 	}

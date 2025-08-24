@@ -2,15 +2,15 @@ package data
 
 import (
 	"database/sql"
+	"erp-system/internal/conf"
 	"os"
 	"strings"
-	"erp-system/internal/conf"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/wire"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/google/wire"
 )
 
 // ProviderSet is data providers.
@@ -80,12 +80,12 @@ func initSQLiteDB(db *sql.DB, log *log.Helper) error {
 		log.Warnf("core_system.sql not found, creating basic tables manually")
 		return initBasicTables(db, log)
 	}
-	
+
 	// 执行核心系统SQL脚本
 	if err := executeSQLScript(db, string(coreSchemaBytes), log); err != nil {
 		return err
 	}
-	
+
 	// 执行权限系统表结构
 	permissionSchemaFile := "../database/schema/permission_system.sql"
 	permissionSchemaBytes, err := os.ReadFile(permissionSchemaFile)
@@ -94,7 +94,7 @@ func initSQLiteDB(db *sql.DB, log *log.Helper) error {
 			log.Warnf("Failed to execute permission system schema: %v", err)
 		}
 	}
-	
+
 	// 执行核心系统种子数据
 	coreSeedFile := "../database/data/core_seed.sql"
 	coreSeedBytes, err := os.ReadFile(coreSeedFile)
@@ -103,7 +103,7 @@ func initSQLiteDB(db *sql.DB, log *log.Helper) error {
 			log.Warnf("Failed to execute core seed data: %v", err)
 		}
 	}
-	
+
 	// 执行权限系统种子数据
 	permissionSeedFile := "../database/data/permission_seed.sql"
 	permissionSeedBytes, err := os.ReadFile(permissionSeedFile)
@@ -120,13 +120,13 @@ func initSQLiteDB(db *sql.DB, log *log.Helper) error {
 // executeSQLScript 执行SQL脚本
 func executeSQLScript(db *sql.DB, sqlScript string, log *log.Helper) error {
 	statements := strings.Split(sqlScript, ";")
-	
+
 	for _, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)
 		if stmt == "" || strings.HasPrefix(stmt, "--") {
 			continue
 		}
-		
+
 		if _, err := db.Exec(stmt); err != nil {
 			log.Errorf("failed to execute SQL statement: %s, error: %v", stmt, err)
 			return err

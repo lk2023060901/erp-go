@@ -38,7 +38,7 @@ func (h *HTTP) GetTimeout() time.Duration {
 	return duration
 }
 
-// GRPC gRPC服务器配置  
+// GRPC gRPC服务器配置
 type GRPC struct {
 	Network string `yaml:"network"`
 	Addr    string `yaml:"addr"`
@@ -66,9 +66,9 @@ type Data struct {
 
 // JWT JWT配置
 type JWT struct {
-	SecretKey           string `yaml:"secret_key"`
-	AccessTokenExpire   int64  `yaml:"access_token_expire"`
-	RefreshTokenExpire  int64  `yaml:"refresh_token_expire"`
+	SecretKey          string `yaml:"secret_key"`
+	AccessTokenExpire  int64  `yaml:"access_token_expire"`
+	RefreshTokenExpire int64  `yaml:"refresh_token_expire"`
 }
 
 // Database 数据库配置
@@ -87,9 +87,9 @@ type Redis struct {
 
 // Auth 认证配置
 type Auth struct {
-	JwtSecret           string `yaml:"jwt_secret"`
-	JwtExpire           string `yaml:"jwt_expire"`
-	RefreshTokenExpire  string `yaml:"refresh_token_expire"`
+	JwtSecret          string `yaml:"jwt_secret"`
+	JwtExpire          string `yaml:"jwt_expire"`
+	RefreshTokenExpire string `yaml:"refresh_token_expire"`
 }
 
 // Log 日志配置
@@ -122,8 +122,8 @@ type Security struct {
 
 // RateLimit 限流配置
 type RateLimit struct {
-	Enabled            bool `yaml:"enabled"`
-	RequestsPerMinute  int  `yaml:"requests_per_minute"`
+	Enabled           bool `yaml:"enabled"`
+	RequestsPerMinute int  `yaml:"requests_per_minute"`
 }
 
 // TOTP 双因素认证配置
@@ -133,7 +133,7 @@ type TOTP struct {
 
 // Password 密码策略配置
 type Password struct {
-	MinLength       int  `yaml:"min_length"`
-	RequireSpecial  bool `yaml:"require_special"`
-	RequireNumber   bool `yaml:"require_number"`
+	MinLength      int  `yaml:"min_length"`
+	RequireSpecial bool `yaml:"require_special"`
+	RequireNumber  bool `yaml:"require_number"`
 }

@@ -309,28 +309,28 @@ func (s *FrappePermissionService) ListDocTypes(ctx context.Context, req *ListDoc
 
 // CreatePermissionRuleRequest 创建权限规则请求
 type CreatePermissionRuleRequest struct {
-	RoleID          int64 `json:"role_id" validate:"required"`
+	RoleID          int64  `json:"role_id" validate:"required"`
 	DocType         string `json:"doc_type" validate:"required"`
 	PermissionLevel int    `json:"permission_level" validate:"min=0,max=9"`
-	
+
 	// 基础权限
 	CanRead  bool `json:"can_read"`
 	CanWrite bool `json:"can_write"`
-	
+
 	// 文档级权限 (仅permission_level=0时有效)
-	CanCreate bool `json:"can_create"`
-	CanDelete bool `json:"can_delete"`
-	CanSubmit bool `json:"can_submit"`
-	CanCancel bool `json:"can_cancel"`
-	CanAmend  bool `json:"can_amend"`
-	CanPrint  bool `json:"can_print"`
-	CanEmail  bool `json:"can_email"`
-	CanImport bool `json:"can_import"`
-	CanExport bool `json:"can_export"`
-	CanShare  bool `json:"can_share"`
-	CanReport bool `json:"can_report"`
+	CanCreate             bool `json:"can_create"`
+	CanDelete             bool `json:"can_delete"`
+	CanSubmit             bool `json:"can_submit"`
+	CanCancel             bool `json:"can_cancel"`
+	CanAmend              bool `json:"can_amend"`
+	CanPrint              bool `json:"can_print"`
+	CanEmail              bool `json:"can_email"`
+	CanImport             bool `json:"can_import"`
+	CanExport             bool `json:"can_export"`
+	CanShare              bool `json:"can_share"`
+	CanReport             bool `json:"can_report"`
 	CanSetUserPermissions bool `json:"can_set_user_permissions"`
-	
+
 	// 条件权限
 	OnlyIfCreator bool `json:"only_if_creator"`
 }
@@ -357,32 +357,32 @@ type UpdatePermissionRuleRequest struct {
 
 // PermissionRuleInfo 权限规则信息
 type PermissionRuleInfo struct {
-	ID              int64     `json:"id"`
-	RoleID          int64     `json:"role_id"`
-	DocType         string    `json:"doc_type"`
-	PermissionLevel int       `json:"permission_level"`
-	
+	ID              int64  `json:"id"`
+	RoleID          int64  `json:"role_id"`
+	DocType         string `json:"doc_type"`
+	PermissionLevel int    `json:"permission_level"`
+
 	// 基础权限
 	CanRead  bool `json:"can_read"`
 	CanWrite bool `json:"can_write"`
-	
+
 	// 文档级权限
-	CanCreate bool `json:"can_create"`
-	CanDelete bool `json:"can_delete"`
-	CanSubmit bool `json:"can_submit"`
-	CanCancel bool `json:"can_cancel"`
-	CanAmend  bool `json:"can_amend"`
-	CanPrint  bool `json:"can_print"`
-	CanEmail  bool `json:"can_email"`
-	CanImport bool `json:"can_import"`
-	CanExport bool `json:"can_export"`
-	CanShare  bool `json:"can_share"`
-	CanReport bool `json:"can_report"`
+	CanCreate             bool `json:"can_create"`
+	CanDelete             bool `json:"can_delete"`
+	CanSubmit             bool `json:"can_submit"`
+	CanCancel             bool `json:"can_cancel"`
+	CanAmend              bool `json:"can_amend"`
+	CanPrint              bool `json:"can_print"`
+	CanEmail              bool `json:"can_email"`
+	CanImport             bool `json:"can_import"`
+	CanExport             bool `json:"can_export"`
+	CanShare              bool `json:"can_share"`
+	CanReport             bool `json:"can_report"`
 	CanSetUserPermissions bool `json:"can_set_user_permissions"`
-	
+
 	// 条件权限
 	OnlyIfCreator bool `json:"only_if_creator"`
-	
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -396,26 +396,26 @@ func (s *FrappePermissionService) CreatePermissionRule(ctx context.Context, req 
 	}
 
 	rule := &biz.PermissionRule{
-		RoleID:          req.RoleID,
-		DocType:         req.DocType,
-		PermissionLevel: req.PermissionLevel,
-		CanRead:         req.CanRead,
-		CanWrite:        req.CanWrite,
-		CanCreate:       req.CanCreate,
-		CanDelete:       req.CanDelete,
-		CanSubmit:       req.CanSubmit,
-		CanCancel:       req.CanCancel,
-		CanAmend:        req.CanAmend,
-		CanPrint:        req.CanPrint,
-		CanEmail:        req.CanEmail,
-		CanImport:       req.CanImport,
-		CanExport:       req.CanExport,
-		CanShare:        req.CanShare,
-		CanReport:       req.CanReport,
+		RoleID:                req.RoleID,
+		DocType:               req.DocType,
+		PermissionLevel:       req.PermissionLevel,
+		CanRead:               req.CanRead,
+		CanWrite:              req.CanWrite,
+		CanCreate:             req.CanCreate,
+		CanDelete:             req.CanDelete,
+		CanSubmit:             req.CanSubmit,
+		CanCancel:             req.CanCancel,
+		CanAmend:              req.CanAmend,
+		CanPrint:              req.CanPrint,
+		CanEmail:              req.CanEmail,
+		CanImport:             req.CanImport,
+		CanExport:             req.CanExport,
+		CanShare:              req.CanShare,
+		CanReport:             req.CanReport,
 		CanSetUserPermissions: req.CanSetUserPermissions,
-		OnlyIfCreator:   req.OnlyIfCreator,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+		OnlyIfCreator:         req.OnlyIfCreator,
+		CreatedAt:             time.Now(),
+		UpdatedAt:             time.Now(),
 	}
 
 	// 验证业务实体数据
@@ -591,27 +591,27 @@ func (s *FrappePermissionService) ListPermissionRules(ctx context.Context, req *
 	var ruleInfos []*PermissionRuleInfo
 	for _, rule := range rules {
 		ruleInfos = append(ruleInfos, &PermissionRuleInfo{
-			ID:              rule.ID,
-			RoleID:          rule.RoleID,
-			DocType:         rule.DocType,
-			PermissionLevel: rule.PermissionLevel,
-			CanRead:         rule.CanRead,
-			CanWrite:        rule.CanWrite,
-			CanCreate:       rule.CanCreate,
-			CanDelete:       rule.CanDelete,
-			CanSubmit:       rule.CanSubmit,
-			CanCancel:       rule.CanCancel,
-			CanAmend:        rule.CanAmend,
-			CanPrint:        rule.CanPrint,
-			CanEmail:        rule.CanEmail,
-			CanImport:       rule.CanImport,
-			CanExport:       rule.CanExport,
-			CanShare:        rule.CanShare,
-			CanReport:       rule.CanReport,
+			ID:                    rule.ID,
+			RoleID:                rule.RoleID,
+			DocType:               rule.DocType,
+			PermissionLevel:       rule.PermissionLevel,
+			CanRead:               rule.CanRead,
+			CanWrite:              rule.CanWrite,
+			CanCreate:             rule.CanCreate,
+			CanDelete:             rule.CanDelete,
+			CanSubmit:             rule.CanSubmit,
+			CanCancel:             rule.CanCancel,
+			CanAmend:              rule.CanAmend,
+			CanPrint:              rule.CanPrint,
+			CanEmail:              rule.CanEmail,
+			CanImport:             rule.CanImport,
+			CanExport:             rule.CanExport,
+			CanShare:              rule.CanShare,
+			CanReport:             rule.CanReport,
 			CanSetUserPermissions: rule.CanSetUserPermissions,
-			OnlyIfCreator:   rule.OnlyIfCreator,
-			CreatedAt:       rule.CreatedAt,
-			UpdatedAt:       rule.UpdatedAt,
+			OnlyIfCreator:         rule.OnlyIfCreator,
+			CreatedAt:             rule.CreatedAt,
+			UpdatedAt:             rule.UpdatedAt,
 		})
 	}
 
@@ -1058,9 +1058,9 @@ func (s *FrappePermissionService) ListUserPermissions(ctx context.Context, req *
 
 	return &ListUserPermissionsResponse{
 		UserPermissions: infos,
-		Total:          total,
-		Page:           req.Page,
-		Size:           req.Size,
+		Total:           total,
+		Page:            req.Page,
+		Size:            req.Size,
 	}, nil
 }
 
@@ -1415,7 +1415,7 @@ func (s *FrappePermissionService) ListDocumentWorkflowStates(ctx context.Context
 		req.Size = 20
 	}
 
-	// 获取文档工作流状态列表  
+	// 获取文档工作流状态列表
 	// Note: The method signature needs to be updated to match the new parameters
 	documentWorkflowStates, err := s.permissionUc.ListDocumentWorkflowStates(ctx, req.DocType, "", req.WorkflowState, req.DocID, req.Page, req.Size)
 	if err != nil {

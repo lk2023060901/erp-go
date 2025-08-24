@@ -6,12 +6,12 @@ import (
 
 // CacheConfig 缓存配置
 type CacheConfig struct {
-	Redis      RedisConfig      `yaml:"redis"`
-	TTL        TTLConfig        `yaml:"ttl"`
-	KeyPrefix  string           `yaml:"key_prefix"`
-	Warmup     WarmupConfig     `yaml:"warmup"`
-	Cleanup    CleanupConfig    `yaml:"cleanup"`
-	Monitoring MonitoringConfig `yaml:"monitoring"`
+	Redis       RedisConfig       `yaml:"redis"`
+	TTL         TTLConfig         `yaml:"ttl"`
+	KeyPrefix   string            `yaml:"key_prefix"`
+	Warmup      WarmupConfig      `yaml:"warmup"`
+	Cleanup     CleanupConfig     `yaml:"cleanup"`
+	Monitoring  MonitoringConfig  `yaml:"monitoring"`
 	Performance PerformanceConfig `yaml:"performance"`
 }
 
@@ -32,19 +32,19 @@ type RedisConfig struct {
 // TTLConfig 缓存TTL配置
 type TTLConfig struct {
 	UserPermissions     int `yaml:"user_permissions"`
-	UserRoles          int `yaml:"user_roles"`
-	PermissionRules    int `yaml:"permission_rules"`
-	FieldPermissions   int `yaml:"field_permissions"`
-	DocTypes           int `yaml:"doc_types"`
+	UserRoles           int `yaml:"user_roles"`
+	PermissionRules     int `yaml:"permission_rules"`
+	FieldPermissions    int `yaml:"field_permissions"`
+	DocTypes            int `yaml:"doc_types"`
 	UserPermissionLevel int `yaml:"user_permission_level"`
 }
 
 // WarmupConfig 预热配置
 type WarmupConfig struct {
-	Enabled           bool               `yaml:"enabled"`
-	OnStartup         bool               `yaml:"on_startup"`
-	ScheduledInterval string             `yaml:"scheduled_interval"`
-	Strategies        []WarmupStrategy   `yaml:"strategies"`
+	Enabled           bool             `yaml:"enabled"`
+	OnStartup         bool             `yaml:"on_startup"`
+	ScheduledInterval string           `yaml:"scheduled_interval"`
+	Strategies        []WarmupStrategy `yaml:"strategies"`
 }
 
 // WarmupStrategy 预热策略
@@ -56,31 +56,31 @@ type WarmupStrategy struct {
 
 // CleanupConfig 清理配置
 type CleanupConfig struct {
-	Enabled          bool   `yaml:"enabled"`
-	Schedule         string `yaml:"schedule"`
-	MaxMemoryUsage   string `yaml:"max_memory_usage"`
+	Enabled        bool   `yaml:"enabled"`
+	Schedule       string `yaml:"schedule"`
+	MaxMemoryUsage string `yaml:"max_memory_usage"`
 }
 
 // MonitoringConfig 监控配置
 type MonitoringConfig struct {
-	Enabled            bool          `yaml:"enabled"`
-	MetricsInterval    string        `yaml:"metrics_interval"`
-	SlowQueryThreshold string        `yaml:"slow_query_threshold"`
-	Alerts             AlertsConfig  `yaml:"alerts"`
+	Enabled            bool         `yaml:"enabled"`
+	MetricsInterval    string       `yaml:"metrics_interval"`
+	SlowQueryThreshold string       `yaml:"slow_query_threshold"`
+	Alerts             AlertsConfig `yaml:"alerts"`
 }
 
 // AlertsConfig 告警配置
 type AlertsConfig struct {
-	CacheHitRateThreshold  float64 `yaml:"cache_hit_rate_threshold"`
-	MemoryUsageThreshold   float64 `yaml:"memory_usage_threshold"`
-	ErrorRateThreshold     float64 `yaml:"error_rate_threshold"`
+	CacheHitRateThreshold float64 `yaml:"cache_hit_rate_threshold"`
+	MemoryUsageThreshold  float64 `yaml:"memory_usage_threshold"`
+	ErrorRateThreshold    float64 `yaml:"error_rate_threshold"`
 }
 
 // PerformanceConfig 性能配置
 type PerformanceConfig struct {
-	BatchSize             int                   `yaml:"batch_size"`
-	MaxConcurrentRequests int                   `yaml:"max_concurrent_requests"`
-	CircuitBreaker        CircuitBreakerConfig  `yaml:"circuit_breaker"`
+	BatchSize             int                  `yaml:"batch_size"`
+	MaxConcurrentRequests int                  `yaml:"max_concurrent_requests"`
+	CircuitBreaker        CircuitBreakerConfig `yaml:"circuit_breaker"`
 }
 
 // CircuitBreakerConfig 熔断器配置
@@ -94,7 +94,7 @@ type CircuitBreakerConfig struct {
 // GetCacheTTL 获取指定类型的缓存TTL
 func (c *CacheConfig) GetCacheTTL(cacheType string) time.Duration {
 	var seconds int
-	
+
 	switch cacheType {
 	case "user_permissions":
 		seconds = c.TTL.UserPermissions
@@ -111,6 +111,6 @@ func (c *CacheConfig) GetCacheTTL(cacheType string) time.Duration {
 	default:
 		seconds = 900 // 默认15分钟
 	}
-	
+
 	return time.Duration(seconds) * time.Second
 }

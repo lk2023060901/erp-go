@@ -118,7 +118,7 @@ func (r *roleRepo) DeleteRole(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if role.IsSystemRole {
 		return biz.ErrCannotDeleteSystemRole
 	}
@@ -218,7 +218,7 @@ func (r *roleRepo) ListRoles(ctx context.Context, page, size int32, search strin
 			// 如果字段无效，使用默认排序
 			dbField = ""
 		}
-		
+
 		if dbField != "" {
 			if sortOrder == "asc" || sortOrder == "desc" {
 				orderByClause = fmt.Sprintf("ORDER BY %s %s, created_at DESC", dbField, strings.ToUpper(sortOrder))
@@ -301,7 +301,7 @@ func (r *roleRepo) GetRolePermissions(ctx context.Context, roleID int32) ([]*biz
 		if parentID.Valid {
 			permission.ParentID = &parentID.Int32
 		}
-		
+
 		// 处理可能为NULL的字符串字段
 		if description.Valid {
 			permission.Description = description.String
@@ -334,7 +334,7 @@ func (r *roleRepo) AssignPermissions(ctx context.Context, roleID int32, permissi
 
 	// 添加新权限
 	for _, permissionID := range permissionIDs {
-		_, err = tx.ExecContext(ctx, 
+		_, err = tx.ExecContext(ctx,
 			"INSERT INTO role_permissions (role_id, permission_id, created_at) VALUES ($1, $2, $3)",
 			roleID, permissionID, time.Now())
 		if err != nil {
