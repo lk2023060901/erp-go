@@ -380,8 +380,8 @@ func (r *permissionRepo) BatchCreatePermissionRules(ctx context.Context, rules [
 	defer tx.Rollback()
 
 	query := `
-		INSERT INTO permission_rules (role, document_type, permission_level, read, write, create,
-		                            delete, submit, cancel, amend, report, export, import,
+		INSERT INTO permission_rules (role, document_type, permission_level, read, write, [create],
+		                            [delete], submit, cancel, amend, report, export, import,
 		                            set_user_permissions, if_owner, match, select_condition,
 		                            delete_condition, amend_condition, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`
@@ -422,7 +422,7 @@ func (r *permissionRepo) BatchCreateUserPermissions(ctx context.Context, userPer
 	defer tx.Rollback()
 
 	query := `
-		INSERT INTO user_permissions (user, allow, for_value, document_type, is_default,
+		INSERT INTO user_permissions (user_id, permission_value, doc_name, doc_type, is_default,
 		                            created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
@@ -450,7 +450,7 @@ func (r *permissionRepo) BatchCreateUserPermissions(ctx context.Context, userPer
 func (r *permissionRepo) CreateUserPermission(ctx context.Context, userPerm *biz.UserPermission) (*biz.UserPermission, error) {
 	var id int64
 	query := `
-		INSERT INTO user_permissions (user, allow, for_value, document_type, is_default,
+		INSERT INTO user_permissions (user_id, permission_value, doc_name, doc_type, is_default,
 		                            created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`
@@ -474,7 +474,7 @@ func (r *permissionRepo) GetUserPermission(ctx context.Context, id int64) (*biz.
 	var userPerm biz.UserPermission
 
 	query := `
-		SELECT id, user, allow, for_value, document_type, is_default,
+		SELECT id, user_id, permission_value, doc_name, doc_type, is_default,
 		       created_at, updated_at
 		FROM user_permissions WHERE id = $1`
 
@@ -498,7 +498,7 @@ func (r *permissionRepo) GetUserPermission(ctx context.Context, id int64) (*biz.
 func (r *permissionRepo) UpdateUserPermission(ctx context.Context, userPerm *biz.UserPermission) (*biz.UserPermission, error) {
 	query := `
 		UPDATE user_permissions 
-		SET user = $1, allow = $2, for_value = $3, document_type = $4,
+		SET user_id = $1, permission_value = $2, doc_name = $3, doc_type = $4,
 		    is_default = $5, updated_at = $6
 		WHERE id = $7`
 
@@ -528,11 +528,11 @@ func (r *permissionRepo) DeleteUserPermission(ctx context.Context, id int64) err
 
 func (r *permissionRepo) ListUserPermissions(ctx context.Context, userID int64, docType string, page, size int32) ([]*biz.UserPermission, error) {
 	query := `
-		SELECT id, user, allow, for_value, document_type, is_default,
+		SELECT id, user_id, permission_value, doc_name, doc_type, is_default,
 		       created_at, updated_at
 		FROM user_permissions
-		WHERE ($1 = 0 OR user = $1) AND ($2 = '' OR document_type = $2)
-		ORDER BY document_type, user, allow
+		WHERE ($1 = 0 OR user_id = $1) AND ($2 = '' OR doc_type = $2)
+		ORDER BY doc_type, user_id, permission_value
 		LIMIT $3 OFFSET $4`
 
 	offset := (page - 1) * size
@@ -572,7 +572,7 @@ func (r *permissionRepo) GetUserPermissionsCount(ctx context.Context, userID int
 	query := `
 		SELECT COUNT(*)
 		FROM user_permissions
-		WHERE ($1 = 0 OR user = $1) AND ($2 = '' OR document_type = $2)`
+		WHERE ($1 = 0 OR user_id = $1) AND ($2 = '' OR doc_type = $2)`
 
 	var count int32
 	err := r.data.db.QueryRowContext(ctx, query, userID, docType).Scan(&count)
@@ -589,13 +589,13 @@ func (r *permissionRepo) CreateFieldPermissionLevel(ctx context.Context, fieldPe
 	var id int64
 	query := `
 		INSERT INTO field_permission_levels (document_type, field_name, permission_level,
-		                                   read, write, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		                                   field_label, field_type, is_mandatory, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id`
 
 	err := r.data.db.QueryRowContext(ctx, query,
 		fieldPerm.DocType, fieldPerm.FieldName, fieldPerm.PermissionLevel,
-		false, false, // 暂时设置为false，因为当前结构体没有Read/Write字段
+		"", "", false, // 默认值
 		fieldPerm.CreatedAt, fieldPerm.UpdatedAt,
 	).Scan(&id)
 
@@ -612,17 +612,17 @@ func (r *permissionRepo) GetFieldPermissionLevel(ctx context.Context, id int64) 
 	var fieldPerm biz.FieldPermissionLevel
 
 	query := `
-		SELECT id, document_type, field_name, permission_level, read, write,
-		       created_at, updated_at
+		SELECT id, document_type, field_name, permission_level, field_label, field_type,
+		       is_mandatory, created_at, updated_at
 		FROM field_permission_levels WHERE id = $1`
 
-	var read, write bool
+	var fieldLabel, fieldType string
+	var isMandatory bool
 	err := r.data.db.QueryRowContext(ctx, query, id).Scan(
 		&fieldPerm.ID, &fieldPerm.DocType, &fieldPerm.FieldName,
-		&fieldPerm.PermissionLevel, &read, &write,
-		&fieldPerm.CreatedAt, &fieldPerm.UpdatedAt,
+		&fieldPerm.PermissionLevel, &fieldLabel, &fieldType,
+		&isMandatory, &fieldPerm.CreatedAt, &fieldPerm.UpdatedAt,
 	)
-	// 忽略read/write字段，因为当前结构体没有这些字段
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -637,8 +637,8 @@ func (r *permissionRepo) GetFieldPermissionLevel(ctx context.Context, id int64) 
 
 func (r *permissionRepo) ListFieldPermissionLevels(ctx context.Context, docType string, page, size int32) ([]*biz.FieldPermissionLevel, error) {
 	query := `
-		SELECT id, document_type, field_name, permission_level, read, write,
-		       created_at, updated_at
+		SELECT id, document_type, field_name, permission_level, field_label, field_type,
+		       is_mandatory, created_at, updated_at
 		FROM field_permission_levels
 		WHERE ($1 = '' OR document_type = $1)
 		ORDER BY document_type, field_name, permission_level
@@ -656,13 +656,13 @@ func (r *permissionRepo) ListFieldPermissionLevels(ctx context.Context, docType 
 	for rows.Next() {
 		var fieldPerm biz.FieldPermissionLevel
 
-		var read, write bool
+		var fieldLabel, fieldType string
+		var isMandatory bool
 		err := rows.Scan(
 			&fieldPerm.ID, &fieldPerm.DocType, &fieldPerm.FieldName,
-			&fieldPerm.PermissionLevel, &read, &write,
-			&fieldPerm.CreatedAt, &fieldPerm.UpdatedAt,
+			&fieldPerm.PermissionLevel, &fieldLabel, &fieldType,
+			&isMandatory, &fieldPerm.CreatedAt, &fieldPerm.UpdatedAt,
 		)
-		// 忽略read/write字段，因为当前结构体没有这些字段
 		if err != nil {
 			r.log.Errorf("failed to scan field permission level: %v", err)
 			return nil, err
@@ -692,13 +692,13 @@ func (r *permissionRepo) UpdateFieldPermissionLevel(ctx context.Context, fieldPe
 	query := `
 		UPDATE field_permission_levels 
 		SET document_type = $1, field_name = $2, permission_level = $3,
-		    read = $4, write = $5, updated_at = $6
-		WHERE id = $7`
+		    field_label = $4, field_type = $5, is_mandatory = $6, updated_at = $7
+		WHERE id = $8`
 
 	fieldPerm.UpdatedAt = time.Now()
 	_, err := r.data.db.ExecContext(ctx, query,
 		fieldPerm.DocType, fieldPerm.FieldName, fieldPerm.PermissionLevel,
-		false, false, fieldPerm.UpdatedAt, fieldPerm.ID,
+		"", "", false, fieldPerm.UpdatedAt, fieldPerm.ID,
 	)
 
 	if err != nil {
@@ -850,31 +850,50 @@ func (r *permissionRepo) ListDocumentWorkflowStates(ctx context.Context, docType
 
 // Permission Checking Operations
 func (r *permissionRepo) CheckPermission(ctx context.Context, userID int64, documentType, action string, permissionLevel int) (bool, error) {
-	query := `
+	// Construct dynamic query based on the action
+	var columnCheck string
+	switch action {
+	case "read":
+		columnCheck = "pr.read"
+	case "write":
+		columnCheck = "pr.write"
+	case "create":
+		columnCheck = "pr.[create]"
+	case "delete":
+		columnCheck = "pr.[delete]"
+	case "submit":
+		columnCheck = "pr.submit"
+	case "cancel":
+		columnCheck = "pr.cancel"
+	case "amend":
+		columnCheck = "pr.amend"
+	case "print":
+		columnCheck = "pr.print"
+	case "email":
+		columnCheck = "pr.email"
+	case "import":
+		columnCheck = "pr.import"
+	case "export":
+		columnCheck = "pr.export"
+	case "share":
+		columnCheck = "pr.share"
+	case "report":
+		columnCheck = "pr.report"
+	default:
+		return false, fmt.Errorf("unsupported permission action: %s", action)
+	}
+
+	query := fmt.Sprintf(`
 		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
 		FROM user_roles ur
 		INNER JOIN permission_rules pr ON ur.role_id = pr.role
 		WHERE ur.user_id = $1 
 		  AND pr.document_type = $2
-		  AND pr.permission_level = $4
-		  AND (
-		    ($3 = 'read' AND pr.read = 1) OR
-		    ($3 = 'write' AND pr.write = 1) OR
-		    ($3 = 'create' AND pr.[create] = 1) OR
-		    ($3 = 'delete' AND pr.[delete] = 1) OR
-		    ($3 = 'submit' AND pr.submit = 1) OR
-		    ($3 = 'cancel' AND pr.cancel = 1) OR
-		    ($3 = 'amend' AND pr.amend = 1) OR
-		    ($3 = 'print' AND pr.print = 1) OR
-		    ($3 = 'email' AND pr.email = 1) OR
-		    ($3 = 'import' AND pr.import = 1) OR
-		    ($3 = 'export' AND pr.export = 1) OR
-		    ($3 = 'share' AND pr.share = 1) OR
-		    ($3 = 'report' AND pr.report = 1)
-		  )`
+		  AND pr.permission_level = $3
+		  AND %s`, columnCheck)
 
 	var hasPermission bool
-	err := r.data.db.QueryRowContext(ctx, query, userID, documentType, action, permissionLevel).Scan(&hasPermission)
+	err := r.data.db.QueryRowContext(ctx, query, userID, documentType, permissionLevel).Scan(&hasPermission)
 	if err != nil {
 		r.log.Errorf("failed to check permission: %v", err)
 		return false, err
@@ -906,7 +925,7 @@ func (r *permissionRepo) GetFieldPermissionLevelsCount(ctx context.Context, docT
 	query := `
 		SELECT COUNT(*) 
 		FROM field_permission_levels 
-		WHERE doc_type = $1`
+		WHERE document_type = $1`
 
 	var count int32
 	err := r.data.db.QueryRowContext(ctx, query, docType).Scan(&count)

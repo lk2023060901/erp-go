@@ -12,6 +12,7 @@ import (
 	"erp-system/internal/cache"
 	"erp-system/internal/conf"
 	"erp-system/internal/data"
+	"erp-system/internal/middleware"
 	"erp-system/internal/service"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -51,7 +52,12 @@ func TestPermissionSystemIntegration(t *testing.T) {
 	// 创建Service
 	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
 
+	// 创建带有超级管理员权限的测试上下文
 	ctx := context.Background()
+	ctx = middleware.SetUserIDToContext(ctx, 1)
+	ctx = middleware.SetUsernameToContext(ctx, "testadmin")
+	ctx = middleware.SetUserEmailToContext(ctx, "admin@test.com")
+	ctx = middleware.SetUserRolesToContext(ctx, []string{"SUPER_ADMIN"})
 
 	// 运行集成测试套件
 	t.Run("DocType Management", func(t *testing.T) {
@@ -265,7 +271,7 @@ func testUserPermissionManagement(t *testing.T, ctx context.Context, svc *servic
 		UserID:          2,
 		DocType:         "TestDocument",
 		DocumentName:    "testdoc",
-		Condition:       "",
+		Condition:       "test-condition",
 		ApplicableFor:   stringPtr("TestDocument"),
 		HideDescendants: false,
 		IsDefault:       true,
@@ -324,7 +330,7 @@ func testPermissionChecking(t *testing.T, ctx context.Context, svc *service.Frap
 	_, err := db.Exec(`
 		INSERT OR REPLACE INTO permission_rules 
 		(role, document_type, permission_level, read, write, [create]) 
-		VALUES (1, 'TestDocument', 0, 1, 1, 1)
+		VALUES (1, 'TestDocument', 0, true, true, true)
 	`)
 	require.NoError(t, err)
 
@@ -396,7 +402,12 @@ func TestPermissionSystemLoadTest(t *testing.T) {
 	permissionUsecase := biz.NewPermissionUsecase(cachedPermissionRepo, logger)
 	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
 
+	// 创建带有超级管理员权限的测试上下文
 	ctx := context.Background()
+	ctx = middleware.SetUserIDToContext(ctx, 1)
+	ctx = middleware.SetUsernameToContext(ctx, "testadmin")
+	ctx = middleware.SetUserEmailToContext(ctx, "admin@test.com")
+	ctx = middleware.SetUserRolesToContext(ctx, []string{"SUPER_ADMIN"})
 
 	// 并发权限检查测试
 	t.Run("Concurrent Permission Checks", func(t *testing.T) {

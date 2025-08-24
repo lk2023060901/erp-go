@@ -166,6 +166,72 @@ func initBasicTables(db *sql.DB, log *log.Helper) error {
 		return err
 	}
 
+	// 基础角色表
+	createRolesTable := `
+	CREATE TABLE IF NOT EXISTS roles (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name VARCHAR(50) UNIQUE NOT NULL,
+		code VARCHAR(50) UNIQUE NOT NULL,
+		description TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	)`
+
+	if _, err := db.Exec(createRolesTable); err != nil {
+		return err
+	}
+
+	// 用户角色关联表
+	createUserRolesTable := `
+	CREATE TABLE IF NOT EXISTS user_roles (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id INTEGER NOT NULL,
+		role_id INTEGER NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(user_id, role_id)
+	)`
+
+	if _, err := db.Exec(createUserRolesTable); err != nil {
+		return err
+	}
+
+	// 权限规则表（简化版）
+	createPermissionRulesTable := `
+	CREATE TABLE IF NOT EXISTS permission_rules (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		role INTEGER NOT NULL,
+		document_type VARCHAR(140) NOT NULL,
+		permission_level INTEGER DEFAULT 0,
+		read BOOLEAN DEFAULT false,
+		write BOOLEAN DEFAULT false,
+		[create] BOOLEAN DEFAULT false,
+		[delete] BOOLEAN DEFAULT false,
+		submit BOOLEAN DEFAULT false,
+		cancel BOOLEAN DEFAULT false,
+		amend BOOLEAN DEFAULT false,
+		print BOOLEAN DEFAULT false,
+		email BOOLEAN DEFAULT false,
+		import BOOLEAN DEFAULT false,
+		export BOOLEAN DEFAULT false,
+		share BOOLEAN DEFAULT false,
+		report BOOLEAN DEFAULT false,
+		set_user_permissions BOOLEAN DEFAULT false,
+		if_owner BOOLEAN DEFAULT false,
+		match TEXT,
+		select_condition TEXT,
+		delete_condition TEXT,
+		amend_condition TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		created_by INTEGER,
+		updated_by INTEGER,
+		UNIQUE(role, document_type, permission_level)
+	)`
+
+	if _, err := db.Exec(createPermissionRulesTable); err != nil {
+		return err
+	}
+
 	log.Info("Basic SQLite tables created successfully")
 	return nil
 }
