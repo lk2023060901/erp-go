@@ -1,0 +1,257 @@
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.register-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+  animation: backgroundMove 20s ease-in-out infinite;
+}
+
+@keyframes backgroundMove {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+}
+
+.register-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 45px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 40px;
+  animation: cardSlideUp 0.8s ease-out;
+}
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.register-icon {
+  font-size: 64px;
+  color: #667eea;
+  margin-bottom: 20px;
+  display: block;
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.register-title {
+  color: #2c3e50 !important;
+  margin-bottom: 8px !important;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.register-subtitle {
+  font-size: 16px;
+  color: #7f8c8d !important;
+  margin-bottom: 0;
+}
+
+.register-button {
+  height: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.register-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+}
+
+.register-button:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.login-link {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.login-link:hover {
+  color: #764ba2;
+  text-decoration: none;
+}
+
+.password-requirements {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+/* 表单样式增强 */
+.ant-form-item-label > label {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.ant-input,
+.ant-input-password,
+.ant-select-selector {
+  border-radius: 10px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+.ant-input:focus,
+.ant-input-password-input:focus,
+.ant-input:hover,
+.ant-input-password:hover .ant-input,
+.ant-select:hover .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ant-input-focused,
+.ant-input-password-focused .ant-input,
+.ant-select-focused .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ant-form-item-has-error .ant-input,
+.ant-form-item-has-error .ant-input-password .ant-input,
+.ant-form-item-has-error .ant-select-selector {
+  border-color: #ff4d4f;
+}
+
+.ant-form-item-explain-error {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .register-container {
+    padding: 10px;
+  }
+  
+  .register-card {
+    padding: 30px 20px;
+    margin: 10px;
+    border-radius: 15px;
+  }
+  
+  .register-icon {
+    font-size: 48px;
+  }
+  
+  .register-title {
+    font-size: 24px !important;
+  }
+  
+  .register-subtitle {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 20px 15px;
+  }
+  
+  .register-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+  }
+  
+  .register-title {
+    font-size: 20px !important;
+  }
+}
+
+/* 加载状态 */
+.register-button.ant-btn-loading {
+  pointer-events: none;
+}
+
+.ant-spin-dot {
+  color: white;
+}
+
+/* 性别选择器样式 */
+.ant-select-dropdown {
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.ant-select-item-option-selected {
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.ant-select-item-option:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+/* 表单验证样式 */
+.ant-form-item-has-success .ant-input,
+.ant-form-item-has-success .ant-input-password .ant-input {
+  border-color: #52c41a;
+}
+
+.ant-form-item-explain-success {
+  color: #52c41a;
+  font-size: 12px;
+}

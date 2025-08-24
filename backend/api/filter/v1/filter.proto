@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package api.filter.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/your-org/erp-system/api/filter/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.filter.v1";
+option java_outer_classname = "FilterProtoV1";
+
+// 过滤器管理服务
+service FilterService {
+  // 创建过滤器
+  rpc CreateFilter(CreateFilterRequest) returns (CreateFilterResponse) {
+    option (google.api.http) = {
+      post: "/v1/filters"
+      body: "*"
+    };
+  }
+
+  // 获取过滤器列表
+  rpc ListFilters(ListFiltersRequest) returns (ListFiltersResponse) {
+    option (google.api.http) = {
+      get: "/v1/filters"
+    };
+  }
+
+  // 获取过滤器详情
+  rpc GetFilter(GetFilterRequest) returns (GetFilterResponse) {
+    option (google.api.http) = {
+      get: "/v1/filters/{id}"
+    };
+  }
+
+  // 更新过滤器
+  rpc UpdateFilter(UpdateFilterRequest) returns (UpdateFilterResponse) {
+    option (google.api.http) = {
+      put: "/v1/filters/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除过滤器
+  rpc DeleteFilter(DeleteFilterRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/filters/{id}"
+    };
+  }
+
+  // 设置默认过滤器
+  rpc SetDefaultFilter(SetDefaultFilterRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/filters/{id}/set-default"
+      body: "*"
+    };
+  }
+}
+
+// 创建过滤器请求
+message CreateFilterRequest {
+  string module_type = 1 [(validate.rules).string = {in: ["users", "roles", "permissions", "organizations", "operation_logs"]}];
+  string filter_name = 2 [(validate.rules).string = {min_len: 1, max_len: 100}];
+  string filter_conditions = 3 [(validate.rules).string.min_len = 1]; // JSON字符串
+  string sort_config = 4; // JSON字符串，可选
+  bool is_default = 5;
+  bool is_public = 6;
+}
+
+// 创建过滤器响应
+message CreateFilterResponse {
+  Filter filter = 1;
+}
+
+// 获取过滤器列表请求
+message ListFiltersRequest {
+  string module_type = 1 [(validate.rules).string = {in: ["users", "roles", "permissions", "organizations", "operation_logs"]}];
+}
+
+// 获取过滤器列表响应
+message ListFiltersResponse {
+  repeated Filter filters = 1;
+}
+
+// 获取过滤器详情请求
+message GetFilterRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取过滤器详情响应
+message GetFilterResponse {
+  Filter filter = 1;
+}
+
+// 更新过滤器请求
+message UpdateFilterRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  string filter_name = 2 [(validate.rules).string = {min_len: 1, max_len: 100}];
+  string filter_conditions = 3 [(validate.rules).string.min_len = 1]; // JSON字符串
+  string sort_config = 4; // JSON字符串，可选
+  bool is_default = 5;
+  bool is_public = 6;
+}
+
+// 更新过滤器响应
+message UpdateFilterResponse {
+  Filter filter = 1;
+}
+
+// 删除过滤器请求
+message DeleteFilterRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 设置默认过滤器请求
+message SetDefaultFilterRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  string module_type = 2 [(validate.rules).string = {in: ["users", "roles", "permissions", "organizations", "operation_logs"]}];
+}
+
+// 过滤器信息
+message Filter {
+  int64 id = 1;
+  int64 user_id = 2;
+  string module_type = 3;
+  string filter_name = 4;
+  string filter_conditions = 5; // JSON字符串
+  string sort_config = 6; // JSON字符串
+  bool is_default = 7;
+  bool is_public = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}

@@ -1,0 +1,473 @@
+syntax = "proto3";
+
+package api.organization.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/your-org/erp-system/api/organization/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.organization.v1";
+option java_outer_classname = "OrganizationProtoV1";
+
+// 组织管理服务
+service OrganizationService {
+  // 创建组织
+  rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
+    option (google.api.http) = {
+      post: "/v1/organizations"
+      body: "*"
+    };
+  }
+
+  // 获取组织列表
+  rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations"
+    };
+  }
+
+  // 获取组织树
+  rpc GetOrganizationTree(GetOrganizationTreeRequest) returns (GetOrganizationTreeResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/tree"
+    };
+  }
+
+  // 获取组织详情
+  rpc GetOrganization(GetOrganizationRequest) returns (GetOrganizationResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/{id}"
+    };
+  }
+
+  // 更新组织
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (UpdateOrganizationResponse) {
+    option (google.api.http) = {
+      put: "/v1/organizations/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除组织
+  rpc DeleteOrganization(DeleteOrganizationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/organizations/{id}"
+    };
+  }
+
+  // 批量删除组织
+  rpc BatchDeleteOrganizations(BatchDeleteOrganizationsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/organizations/batch-delete"
+      body: "*"
+    };
+  }
+
+  // 启用/禁用组织
+  rpc ToggleOrganizationStatus(ToggleOrganizationStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/organizations/{id}/toggle-status"
+      body: "*"
+    };
+  }
+
+  // 移动组织
+  rpc MoveOrganization(MoveOrganizationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/organizations/{id}/move"
+      body: "*"
+    };
+  }
+
+  // 获取组织成员
+  rpc GetOrganizationMembers(GetOrganizationMembersRequest) returns (GetOrganizationMembersResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/{organization_id}/members"
+    };
+  }
+
+  // 添加组织成员
+  rpc AddOrganizationMember(AddOrganizationMemberRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/organizations/{organization_id}/members"
+      body: "*"
+    };
+  }
+
+  // 移除组织成员
+  rpc RemoveOrganizationMember(RemoveOrganizationMemberRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/organizations/{organization_id}/members/{user_id}"
+    };
+  }
+
+  // 更新成员职位
+  rpc UpdateMemberPosition(UpdateMemberPositionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/v1/organizations/{organization_id}/members/{user_id}/position"
+      body: "*"
+    };
+  }
+
+  // 设置组织负责人
+  rpc SetOrganizationLeader(SetOrganizationLeaderRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/organizations/{id}/leader"
+      body: "*"
+    };
+  }
+
+  // 获取组织层级关系
+  rpc GetOrganizationPath(GetOrganizationPathRequest) returns (GetOrganizationPathResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/{id}/path"
+    };
+  }
+
+  // 获取子组织
+  rpc GetChildOrganizations(GetChildOrganizationsRequest) returns (GetChildOrganizationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/{id}/children"
+    };
+  }
+
+  // 搜索组织
+  rpc SearchOrganizations(SearchOrganizationsRequest) returns (SearchOrganizationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/search"
+    };
+  }
+
+  // 组织统计信息
+  rpc GetOrganizationStats(GetOrganizationStatsRequest) returns (GetOrganizationStatsResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/{id}/stats"
+    };
+  }
+
+  // 获取组织选项（用于下拉框）
+  rpc GetOrganizationOptions(GetOrganizationOptionsRequest) returns (GetOrganizationOptionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/organizations/options"
+    };
+  }
+}
+
+// 创建组织请求
+message CreateOrganizationRequest {
+  int64 parent_id = 1; // 父组织ID，0表示顶级组织
+  string name = 2 [(validate.rules).string = {min_len: 1, max_len: 100}];
+  string code = 3 [(validate.rules).string = {min_len: 1, max_len: 50, pattern: "^[A-Z0-9_]+$"}];
+  string type = 4 [(validate.rules).string = {in: ["company", "department", "team", "group"]}];
+  string description = 5 [(validate.rules).string.max_len = 500];
+  int64 leader_id = 6; // 负责人ID
+  string phone = 7 [(validate.rules).string.pattern = "^[0-9]{11}$"];
+  string email = 8 [(validate.rules).string.email = true];
+  string address = 9 [(validate.rules).string.max_len = 200];
+  bool data_isolation = 10; // 数据隔离开关
+  int32 sort_order = 11 [(validate.rules).int32.gte = 0];
+  bool is_enabled = 12;
+}
+
+// 创建组织响应
+message CreateOrganizationResponse {
+  Organization organization = 1;
+}
+
+// 获取组织列表请求
+message ListOrganizationsRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 3; // 搜索关键词
+  string type = 4; // 组织类型筛选
+  int64 parent_id = 5; // 父组织筛选
+  bool is_enabled = 6; // 是否启用筛选
+  string sort_by = 7; // 排序字段
+  string sort_order = 8 [(validate.rules).string = {in: ["asc", "desc"]}]; // 排序方向
+}
+
+// 获取组织列表响应
+message ListOrganizationsResponse {
+  repeated Organization organizations = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 获取组织树请求
+message GetOrganizationTreeRequest {
+  int64 root_id = 1; // 根节点ID，0表示从顶级开始
+  bool only_enabled = 2; // 只获取启用的组织
+  int32 max_depth = 3; // 最大深度
+  string type = 4; // 组织类型筛选
+}
+
+// 获取组织树响应
+message GetOrganizationTreeResponse {
+  repeated OrganizationTreeNode tree = 1;
+}
+
+// 获取组织详情请求
+message GetOrganizationRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取组织详情响应
+message GetOrganizationResponse {
+  Organization organization = 1;
+  Organization parent = 2; // 父组织
+  repeated Organization children = 3; // 子组织
+  User leader = 4; // 负责人
+  int32 member_count = 5; // 成员数量
+  int32 sub_org_count = 6; // 子组织数量
+}
+
+// 更新组织请求
+message UpdateOrganizationRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  int64 parent_id = 2;
+  string name = 3 [(validate.rules).string.max_len = 100];
+  string code = 4 [(validate.rules).string = {max_len: 50, pattern: "^[A-Z0-9_]+$"}];
+  string type = 5 [(validate.rules).string = {in: ["company", "department", "team", "group"]}];
+  string description = 6 [(validate.rules).string.max_len = 500];
+  int64 leader_id = 7;
+  string phone = 8 [(validate.rules).string.pattern = "^[0-9]{11}$"];
+  string email = 9 [(validate.rules).string.email = true];
+  string address = 10 [(validate.rules).string.max_len = 200];
+  bool data_isolation = 11;
+  int32 sort_order = 12 [(validate.rules).int32.gte = 0];
+  bool is_enabled = 13;
+}
+
+// 更新组织响应
+message UpdateOrganizationResponse {
+  Organization organization = 1;
+}
+
+// 删除组织请求
+message DeleteOrganizationRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool force = 2; // 强制删除，即使有子组织或成员
+  int64 transfer_to = 3; // 将成员转移到指定组织
+}
+
+// 批量删除组织请求
+message BatchDeleteOrganizationsRequest {
+  repeated int64 ids = 1 [(validate.rules).repeated.min_items = 1];
+  bool force = 2; // 强制删除
+  int64 transfer_to = 3; // 批量转移成员到指定组织
+}
+
+// 切换组织状态请求
+message ToggleOrganizationStatusRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool is_enabled = 2;
+}
+
+// 移动组织请求
+message MoveOrganizationRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  int64 target_parent_id = 2; // 目标父组织ID
+}
+
+// 获取组织成员请求
+message GetOrganizationMembersRequest {
+  int64 organization_id = 1 [(validate.rules).int64.gt = 0];
+  int32 page = 2 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 3 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 4; // 搜索关键词
+  string position = 5; // 职位筛选
+  bool include_sub_orgs = 6; // 是否包含子组织成员
+}
+
+// 获取组织成员响应
+message GetOrganizationMembersResponse {
+  repeated OrganizationMember members = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 添加组织成员请求
+message AddOrganizationMemberRequest {
+  int64 organization_id = 1 [(validate.rules).int64.gt = 0];
+  int64 user_id = 2 [(validate.rules).int64.gt = 0];
+  string position = 3 [(validate.rules).string.max_len = 100];
+  bool is_primary = 4; // 是否为主组织
+  bool is_leader = 5; // 是否为负责人
+  string join_date = 6; // 入职日期
+}
+
+// 移除组织成员请求
+message RemoveOrganizationMemberRequest {
+  int64 organization_id = 1 [(validate.rules).int64.gt = 0];
+  int64 user_id = 2 [(validate.rules).int64.gt = 0];
+  string leave_date = 3; // 离职日期
+  string reason = 4; // 离职原因
+}
+
+// 更新成员职位请求
+message UpdateMemberPositionRequest {
+  int64 organization_id = 1 [(validate.rules).int64.gt = 0];
+  int64 user_id = 2 [(validate.rules).int64.gt = 0];
+  string position = 3 [(validate.rules).string.max_len = 100];
+  bool is_leader = 4; // 是否为负责人
+}
+
+// 设置组织负责人请求
+message SetOrganizationLeaderRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  int64 leader_id = 2 [(validate.rules).int64.gt = 0];
+}
+
+// 获取组织路径请求
+message GetOrganizationPathRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取组织路径响应
+message GetOrganizationPathResponse {
+  repeated Organization path = 1; // 从根到当前组织的路径
+}
+
+// 获取子组织请求
+message GetChildOrganizationsRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool recursive = 2; // 是否递归获取所有子组织
+  bool only_enabled = 3; // 只获取启用的组织
+}
+
+// 获取子组织响应
+message GetChildOrganizationsResponse {
+  repeated Organization children = 1;
+}
+
+// 搜索组织请求
+message SearchOrganizationsRequest {
+  string keyword = 1 [(validate.rules).string.min_len = 1];
+  string type = 2; // 组织类型筛选
+  bool only_enabled = 3; // 只搜索启用的组织
+  int32 limit = 4 [(validate.rules).int32 = {gte: 1, lte: 100}]; // 结果限制
+}
+
+// 搜索组织响应
+message SearchOrganizationsResponse {
+  repeated OrganizationSearchResult results = 1;
+}
+
+// 获取组织统计请求
+message GetOrganizationStatsRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool include_sub_orgs = 2; // 是否包含子组织统计
+}
+
+// 获取组织统计响应
+message GetOrganizationStatsResponse {
+  int32 total_members = 1; // 总成员数
+  int32 direct_members = 2; // 直属成员数
+  int32 sub_organizations = 3; // 子组织数
+  int32 total_sub_members = 4; // 子组织成员总数
+  repeated PositionStat position_stats = 5; // 职位统计
+  repeated TypeStat type_stats = 6; // 组织类型统计
+}
+
+// 获取组织选项请求
+message GetOrganizationOptionsRequest {
+  bool only_enabled = 1; // 只获取启用的组织
+  string type = 2; // 组织类型筛选
+  int64 exclude_id = 3; // 排除指定ID的组织
+}
+
+// 获取组织选项响应
+message GetOrganizationOptionsResponse {
+  repeated OrganizationOption organization_options = 1;
+}
+
+// 组织信息
+message Organization {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string code = 4;
+  string type = 5;
+  string description = 6;
+  int32 level = 7;
+  string path = 8;
+  int64 leader_id = 9;
+  string phone = 10;
+  string email = 11;
+  string address = 12;
+  bool data_isolation = 13;
+  int32 sort_order = 14;
+  bool is_enabled = 15;
+  int64 created_by = 16;
+  int64 updated_by = 17;
+  string created_at = 18;
+  string updated_at = 19;
+}
+
+// 组织树节点
+message OrganizationTreeNode {
+  Organization organization = 1;
+  repeated OrganizationTreeNode children = 2;
+  int32 member_count = 3; // 成员数量
+  bool expanded = 4; // 是否展开
+}
+
+// 用户信息（简化版）
+message User {
+  int64 id = 1;
+  string username = 2;
+  string email = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string avatar_url = 6;
+  bool is_enabled = 7;
+  string created_at = 8;
+}
+
+// 组织成员
+message OrganizationMember {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 org_id = 3;
+  string position = 4;
+  bool is_primary = 5;
+  bool is_leader = 6;
+  string join_date = 7;
+  string leave_date = 8;
+  bool is_active = 9;
+  string created_at = 10;
+  User user = 11; // 用户详情
+}
+
+// 组织搜索结果
+message OrganizationSearchResult {
+  Organization organization = 1;
+  repeated Organization path = 2; // 组织路径
+  string highlight = 3; // 高亮匹配内容
+}
+
+// 职位统计
+message PositionStat {
+  string position = 1;
+  int32 count = 2;
+}
+
+// 类型统计
+message TypeStat {
+  string type = 1;
+  int32 count = 2;
+}
+
+// 组织选项
+message OrganizationOption {
+  int64 id = 1;
+  string name = 2;
+  string code = 3;
+  string type = 4;
+  int32 level = 5;
+  string path_name = 6; // 完整路径名称
+}

@@ -1,0 +1,70 @@
+# 权限缓存配置
+permission_cache:
+  # Redis连接配置
+  redis:
+    addr: "localhost:6379"
+    password: ""
+    db: 1  # 使用专用的数据库
+    pool_size: 10
+    min_idle_conns: 3
+    dial_timeout: 5s
+    read_timeout: 3s
+    write_timeout: 3s
+    pool_timeout: 4s
+    idle_timeout: 5m
+    
+  # 缓存TTL配置（秒）
+  ttl:
+    user_permissions: 900      # 15分钟
+    user_roles: 1800          # 30分钟  
+    permission_rules: 3600    # 1小时
+    field_permissions: 7200   # 2小时
+    doc_types: 14400          # 4小时
+    user_permission_level: 600 # 10分钟
+    
+  # 缓存键前缀
+  key_prefix: "erp_perm:"
+  
+  # 预热配置
+  warmup:
+    enabled: true
+    on_startup: true
+    scheduled_interval: "30m"  # 定时预热间隔
+    
+    # 预热策略
+    strategies:
+      - name: "critical_cache"
+        cache_types: ["user_roles", "doc_types"]
+        schedule: "0 */6 * * *"  # 每6小时
+        
+      - name: "permission_rules"
+        cache_types: ["permission_rules", "field_permissions"]
+        schedule: "0 2 * * *"    # 每天凌晨2点
+        
+  # 缓存清理配置
+  cleanup:
+    enabled: true
+    schedule: "0 3 * * *"      # 每天凌晨3点清理
+    max_memory_usage: "1GB"   # 最大内存使用
+    
+  # 监控配置
+  monitoring:
+    enabled: true
+    metrics_interval: "1m"     # 指标收集间隔
+    slow_query_threshold: "100ms"
+    
+    # 告警阈值
+    alerts:
+      cache_hit_rate_threshold: 0.8     # 缓存命中率低于80%告警
+      memory_usage_threshold: 0.9       # 内存使用率超过90%告警
+      error_rate_threshold: 0.05        # 错误率超过5%告警
+      
+  # 性能优化配置
+  performance:
+    batch_size: 100           # 批量操作大小
+    max_concurrent_requests: 50 # 最大并发请求数
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5    # 失败阈值
+      timeout: 10s           # 超时时间
+      recovery_timeout: 30s  # 恢复时间

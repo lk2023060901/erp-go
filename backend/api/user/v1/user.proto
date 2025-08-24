@@ -1,0 +1,437 @@
+syntax = "proto3";
+
+package api.user.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/your-org/erp-system/api/user/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.user.v1";
+option java_outer_classname = "UserProtoV1";
+
+// 用户管理服务
+service UserService {
+  // 创建用户
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+      post: "/v1/users"
+      body: "*"
+    };
+  }
+
+  // 获取用户列表
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/users"
+    };
+  }
+
+  // 获取用户详情
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{id}"
+    };
+  }
+
+  // 更新用户
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      put: "/v1/users/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除用户
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/users/{id}"
+    };
+  }
+
+  // 批量删除用户
+  rpc BatchDeleteUsers(BatchDeleteUsersRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/users/batch-delete"
+      body: "*"
+    };
+  }
+
+  // 启用/禁用用户
+  rpc ToggleUserStatus(ToggleUserStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/users/{id}/toggle-status"
+      body: "*"
+    };
+  }
+
+  // 重置用户密码
+  rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse) {
+    option (google.api.http) = {
+      post: "/v1/users/{id}/reset-password"
+      body: "*"
+    };
+  }
+
+  // 分配用户角色
+  rpc AssignUserRoles(AssignUserRolesRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/users/{user_id}/roles"
+      body: "*"
+    };
+  }
+
+  // 获取用户角色
+  rpc GetUserRoles(GetUserRolesRequest) returns (GetUserRolesResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{user_id}/roles"
+    };
+  }
+
+  // 移除用户角色
+  rpc RemoveUserRole(RemoveUserRoleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/users/{user_id}/roles/{role_id}"
+    };
+  }
+
+  // 分配用户组织
+  rpc AssignUserOrganization(AssignUserOrganizationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/users/{user_id}/organizations"
+      body: "*"
+    };
+  }
+
+  // 获取用户组织
+  rpc GetUserOrganizations(GetUserOrganizationsRequest) returns (GetUserOrganizationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{user_id}/organizations"
+    };
+  }
+
+  // 上传用户头像
+  rpc UploadAvatar(UploadAvatarRequest) returns (UploadAvatarResponse) {
+    option (google.api.http) = {
+      post: "/v1/users/{user_id}/avatar"
+      body: "*"
+    };
+  }
+
+  // 获取用户权限
+  rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{user_id}/permissions"
+    };
+  }
+
+  // 用户统计信息
+  rpc GetUserStats(google.protobuf.Empty) returns (GetUserStatsResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/stats"
+    };
+  }
+}
+
+// 创建用户请求
+message CreateUserRequest {
+  string username = 1 [(validate.rules).string = {min_len: 1, max_len: 50, pattern: "^[a-zA-Z0-9_]+$"}];
+  string email = 2 [(validate.rules).string.email = true];
+  string first_name = 3 [(validate.rules).string = {min_len: 1, max_len: 50}];
+  string last_name = 4 [(validate.rules).string = {min_len: 1, max_len: 50}];
+  string phone = 5 [(validate.rules).string.pattern = "^[0-9]{11}$"];
+  string gender = 6 [(validate.rules).string = {in: ["M", "F", "O"]}];
+  string birth_date = 7; // YYYY-MM-DD格式
+  string password = 8 [(validate.rules).string = {min_len: 8, max_len: 100}];
+  repeated int64 role_ids = 9; // 角色ID列表
+  int64 organization_id = 10; // 组织ID
+  string position = 11; // 职位
+}
+
+// 创建用户响应
+message CreateUserResponse {
+  User user = 1;
+}
+
+// 获取用户列表请求
+message ListUsersRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 3; // 搜索关键词（兼容旧版）
+  string status = 4; // 状态筛选（兼容旧版）
+  int64 role_id = 5; // 角色筛选（兼容旧版）
+  int64 organization_id = 6; // 组织筛选（兼容旧版）
+  string sort_by = 7; // 排序字段（兼容旧版）
+  string sort_order = 8 [(validate.rules).string = {in: ["asc", "desc"]}]; // 排序方向（兼容旧版）
+  
+  // 新增的过滤器支持
+  string filter_conditions = 9; // 过滤条件（JSON字符串）
+  string sort_config = 10; // 排序配置（JSON字符串）
+  int64 filter_id = 11; // 使用保存的过滤器ID
+}
+
+// 获取用户列表响应
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 获取用户详情请求
+message GetUserRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取用户详情响应
+message GetUserResponse {
+  User user = 1;
+  repeated Role roles = 2;
+  repeated Organization organizations = 3;
+}
+
+// 更新用户请求
+message UpdateUserRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  string username = 2 [(validate.rules).string = {max_len: 50, pattern: "^[a-zA-Z0-9_]+$"}];
+  string email = 3 [(validate.rules).string.email = true];
+  string first_name = 4 [(validate.rules).string.max_len = 50];
+  string last_name = 5 [(validate.rules).string.max_len = 50];
+  string phone = 6 [(validate.rules).string.pattern = "^[0-9]{11}$"];
+  string gender = 7 [(validate.rules).string = {in: ["M", "F", "O"]}];
+  string birth_date = 8; // YYYY-MM-DD格式
+  string avatar_url = 9;
+}
+
+// 更新用户响应
+message UpdateUserResponse {
+  User user = 1;
+}
+
+// 删除用户请求
+message DeleteUserRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 批量删除用户请求
+message BatchDeleteUsersRequest {
+  repeated int64 ids = 1 [(validate.rules).repeated.min_items = 1];
+}
+
+// 切换用户状态请求
+message ToggleUserStatusRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool is_enabled = 2;
+}
+
+// 重置用户密码请求
+message ResetUserPasswordRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  string new_password = 2 [(validate.rules).string = {min_len: 8, max_len: 100}];
+}
+
+// 重置用户密码响应
+message ResetUserPasswordResponse {
+  string temporary_password = 1; // 临时密码（如果未指定新密码）
+}
+
+// 分配用户角色请求
+message AssignUserRolesRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+  repeated int64 role_ids = 2 [(validate.rules).repeated.min_items = 1];
+  string expires_at = 3; // 过期时间，可选
+}
+
+// 获取用户角色请求
+message GetUserRolesRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取用户角色响应
+message GetUserRolesResponse {
+  repeated UserRole user_roles = 1;
+}
+
+// 移除用户角色请求
+message RemoveUserRoleRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+  int64 role_id = 2 [(validate.rules).int64.gt = 0];
+}
+
+// 分配用户组织请求
+message AssignUserOrganizationRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+  int64 organization_id = 2 [(validate.rules).int64.gt = 0];
+  string position = 3; // 职位
+  bool is_primary = 4; // 是否主组织
+  bool is_leader = 5; // 是否负责人
+}
+
+// 获取用户组织请求
+message GetUserOrganizationsRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取用户组织响应
+message GetUserOrganizationsResponse {
+  repeated UserOrganization user_organizations = 1;
+}
+
+// 上传头像请求
+message UploadAvatarRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+  bytes file_data = 2 [(validate.rules).bytes = {min_len: 1, max_len: 2097152}]; // 最大2MB
+  string file_name = 3 [(validate.rules).string.min_len = 1];
+  string content_type = 4 [(validate.rules).string.min_len = 1];
+}
+
+// 上传头像响应
+message UploadAvatarResponse {
+  string avatar_url = 1;
+}
+
+// 获取用户权限请求
+message GetUserPermissionsRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取用户权限响应
+message GetUserPermissionsResponse {
+  repeated Permission permissions = 1;
+}
+
+// 用户统计响应
+message GetUserStatsResponse {
+  int32 total_users = 1; // 总用户数
+  int32 active_users = 2; // 活跃用户数
+  int32 disabled_users = 3; // 禁用用户数
+  int32 new_users_today = 4; // 今日新增用户
+  int32 new_users_this_month = 5; // 本月新增用户
+  repeated UserStatusStat status_stats = 6; // 状态统计
+  repeated RoleUserStat role_stats = 7; // 角色统计
+}
+
+// 用户信息
+message User {
+  int64 id = 1;
+  string username = 2;
+  string email = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string phone = 6;
+  string gender = 7;
+  string birth_date = 8;
+  string avatar_url = 9;
+  int32 status = 10; // 1=正常, 0=禁用, -1=删除
+  bool is_enabled = 11;
+  bool phone_verified = 12;
+  bool two_factor_enabled = 13;
+  int32 login_count = 14;
+  string first_login_time = 15;
+  string last_login_time = 16;
+  string last_login_ip = 17;
+  string current_login_time = 18;
+  string current_login_ip = 19;
+  string password_changed_at = 20;
+  string created_at = 21;
+  string updated_at = 22;
+}
+
+// 角色信息
+message Role {
+  int64 id = 1;
+  string name = 2;
+  string code = 3;
+  string description = 4;
+  bool is_system_role = 5;
+  bool is_enabled = 6;
+  int32 sort_order = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+// 组织信息
+message Organization {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string code = 4;
+  string type = 5;
+  string description = 6;
+  int32 level = 7;
+  string path = 8;
+  int64 leader_id = 9;
+  string phone = 10;
+  string email = 11;
+  string address = 12;
+  bool data_isolation = 13;
+  int32 sort_order = 14;
+  bool is_enabled = 15;
+  string created_at = 16;
+  string updated_at = 17;
+}
+
+// 用户角色关联
+message UserRole {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 role_id = 3;
+  string expires_at = 4;
+  bool is_active = 5;
+  int64 granted_by = 6;
+  string granted_at = 7;
+  string created_at = 8;
+  Role role = 9; // 角色详情
+}
+
+// 用户组织关联
+message UserOrganization {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 org_id = 3;
+  string position = 4;
+  bool is_primary = 5;
+  bool is_leader = 6;
+  string join_date = 7;
+  string leave_date = 8;
+  bool is_active = 9;
+  string created_at = 10;
+  Organization organization = 11; // 组织详情
+}
+
+// 权限信息
+message Permission {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string code = 4;
+  string resource = 5;
+  string action = 6;
+  string module = 7;
+  string description = 8;
+  bool is_menu = 9;
+  bool is_button = 10;
+  bool is_api = 11;
+  string menu_url = 12;
+  string menu_icon = 13;
+  string api_path = 14;
+  string api_method = 15;
+  int32 level = 16;
+  int32 sort_order = 17;
+  bool is_enabled = 18;
+  string created_at = 19;
+}
+
+// 用户状态统计
+message UserStatusStat {
+  string status = 1;
+  int32 count = 2;
+}
+
+// 角色用户统计
+message RoleUserStat {
+  int64 role_id = 1;
+  string role_name = 2;
+  int32 user_count = 3;
+}

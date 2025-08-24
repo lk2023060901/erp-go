@@ -1,0 +1,177 @@
+services:
+  # PostgreSQL数据库 - 生产环境
+  postgres:
+    image: postgres:15
+    container_name: erp-postgres
+    profiles: ["prod", "dev"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-erp_db}
+      POSTGRES_USER: ${POSTGRES_USER:-erp_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema:/docker-entrypoint-initdb.d/01-schema:ro
+      - ./database/data:/docker-entrypoint-initdb.d/02-data:ro
+    ports:
+      - "${POSTGRES_PORT:-58001}:5432"
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-erp_user} -d ${POSTGRES_DB:-erp_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL测试数据库 - 测试/CI环境
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: erp-postgres-test
+    profiles: ["test", "ci"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-erp_test_db}
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-erp_test_user}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-erp_test_pass}
+      POSTGRES_INITDB_ARGS: "--auth-host=trust --auth-local=trust"
+    volumes:
+      - ./database/schema:/docker-entrypoint-initdb.d/01-schema:ro
+      - ./database/data:/docker-entrypoint-initdb.d/02-data:ro
+    ports:
+      - "${POSTGRES_TEST_PORT:-5433}:5432"
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_TEST_USER:-erp_test_user} -d ${POSTGRES_TEST_DB:-erp_test_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  # Redis缓存 - 生产环境
+  redis:
+    image: redis:7-alpine
+    container_name: erp-redis
+    profiles: ["prod", "dev"]
+    ports:
+      - "${REDIS_PORT:-58002}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Redis测试缓存 - 测试/CI环境
+  redis-test:
+    image: redis:7-alpine
+    container_name: erp-redis-test
+    profiles: ["test", "ci"]
+    ports:
+      - "${REDIS_TEST_PORT:-6380}:6379"
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    tmpfs:
+      - /data
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+
+  # 后端API服务 - 生产环境
+  api-server:
+    image: erp-api:latest
+    container_name: erp-api
+    profiles: ["prod", "dev"]
+    ports:
+      - "${API_PORT:-58080}:58080"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-erp_user}:${POSTGRES_PASSWORD:-erp_pass}@postgres:5432/${POSTGRES_DB:-erp_db}?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
+      - SERVER_PORT=58080
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - erp-network
+
+  # 测试用的后端API服务 - 测试/CI环境
+  api-server-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: erp-api:test
+    container_name: erp-api-test
+    profiles: ["test", "ci"]
+    ports:
+      - "${API_TEST_PORT:-58081}:58080"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_TEST_USER:-erp_test_user}:${POSTGRES_TEST_PASSWORD:-erp_test_pass}@postgres-test:5432/${POSTGRES_TEST_DB:-erp_test_db}?sslmode=disable
+      - REDIS_URL=redis://redis-test:6379
+      - JWT_SECRET=${JWT_TEST_SECRET:-test-jwt-secret-key-for-ci-testing}
+      - SERVER_PORT=58080
+      - LOG_LEVEL=debug
+      - ENVIRONMENT=test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:58080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # 前端应用 - 仅生产环境
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${FRONTEND_API_URL:-http://localhost:58080}
+    image: erp-frontend:latest
+    container_name: erp-frontend
+    profiles: ["prod"]
+    ports:
+      - "${FRONTEND_PORT:-58003}:80"
+    depends_on:
+      - api-server
+    networks:
+      - erp-network
+
+  # Nginx反向代理 - 仅生产环境
+  nginx:
+    image: nginx:alpine
+    container_name: erp-nginx
+    profiles: ["prod"]
+    ports:
+      - "${NGINX_PORT:-58000}:80"
+    volumes:
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - frontend
+      - api-server
+    networks:
+      - erp-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  erp-network:
+    driver: bridge

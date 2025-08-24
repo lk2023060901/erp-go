@@ -1,0 +1,592 @@
+syntax = "proto3";
+
+package api.system.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/your-org/erp-system/api/system/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.system.v1";
+option java_outer_classname = "SystemProtoV1";
+
+// 系统管理服务
+service SystemService {
+  // 系统健康检查
+  rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {
+    option (google.api.http) = {
+      get: "/health"
+    };
+  }
+
+  // 获取系统信息
+  rpc GetSystemInfo(google.protobuf.Empty) returns (GetSystemInfoResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/info"
+    };
+  }
+
+  // 获取系统统计
+  rpc GetSystemStats(google.protobuf.Empty) returns (GetSystemStatsResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/stats"
+    };
+  }
+
+  // 获取系统配置
+  rpc GetSystemConfig(GetSystemConfigRequest) returns (GetSystemConfigResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/configs/{key}"
+    };
+  }
+
+  // 获取系统配置列表
+  rpc ListSystemConfigs(ListSystemConfigsRequest) returns (ListSystemConfigsResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/configs"
+    };
+  }
+
+  // 更新系统配置
+  rpc UpdateSystemConfig(UpdateSystemConfigRequest) returns (UpdateSystemConfigResponse) {
+    option (google.api.http) = {
+      put: "/v1/system/configs/{key}"
+      body: "*"
+    };
+  }
+
+  // 批量更新系统配置
+  rpc BatchUpdateSystemConfigs(BatchUpdateSystemConfigsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/v1/system/configs"
+      body: "*"
+    };
+  }
+
+  // 重置系统配置
+  rpc ResetSystemConfig(ResetSystemConfigRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/system/configs/{key}/reset"
+      body: "*"
+    };
+  }
+
+  // 获取操作日志
+  rpc GetOperationLogs(GetOperationLogsRequest) returns (GetOperationLogsResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/logs/operations"
+    };
+  }
+
+  // 获取系统日志
+  rpc GetSystemLogs(GetSystemLogsRequest) returns (GetSystemLogsResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/logs/system"
+    };
+  }
+
+  // 清理系统日志
+  rpc CleanupLogs(CleanupLogsRequest) returns (CleanupLogsResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/logs/cleanup"
+      body: "*"
+    };
+  }
+
+  // 导出操作日志
+  rpc ExportOperationLogs(ExportOperationLogsRequest) returns (ExportOperationLogsResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/logs/export"
+      body: "*"
+    };
+  }
+
+  // 获取在线用户
+  rpc GetOnlineUsers(GetOnlineUsersRequest) returns (GetOnlineUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/online-users"
+    };
+  }
+
+  // 强制用户下线
+  rpc ForceUserOffline(ForceUserOfflineRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/system/force-offline"
+      body: "*"
+    };
+  }
+
+  // 发送系统通知
+  rpc SendSystemNotification(SendSystemNotificationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/system/notifications"
+      body: "*"
+    };
+  }
+
+  // 系统缓存管理
+  rpc GetCacheInfo(google.protobuf.Empty) returns (GetCacheInfoResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/cache/info"
+    };
+  }
+
+  // 清理系统缓存
+  rpc ClearCache(ClearCacheRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/system/cache/clear"
+      body: "*"
+    };
+  }
+
+  // 数据库备份
+  rpc BackupDatabase(BackupDatabaseRequest) returns (BackupDatabaseResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/backup/database"
+      body: "*"
+    };
+  }
+
+  // 获取备份列表
+  rpc ListBackups(ListBackupsRequest) returns (ListBackupsResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/backups"
+    };
+  }
+
+  // 恢复数据库
+  rpc RestoreDatabase(RestoreDatabaseRequest) returns (RestoreDatabaseResponse) {
+    option (google.api.http) = {
+      post: "/v1/system/restore/database"
+      body: "*"
+    };
+  }
+
+  // 系统维护模式
+  rpc SetMaintenanceMode(SetMaintenanceModeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/system/maintenance"
+      body: "*"
+    };
+  }
+
+  // 获取系统监控指标
+  rpc GetSystemMetrics(google.protobuf.Empty) returns (GetSystemMetricsResponse) {
+    option (google.api.http) = {
+      get: "/v1/system/metrics"
+    };
+  }
+}
+
+// 健康检查响应
+message HealthCheckResponse {
+  string status = 1; // healthy, unhealthy
+  int64 timestamp = 2;
+  string version = 3;
+  repeated ServiceStatus services = 4;
+}
+
+// 服务状态
+message ServiceStatus {
+  string name = 1;
+  string status = 2; // up, down
+  string message = 3;
+  int64 response_time_ms = 4;
+}
+
+// 获取系统信息响应
+message GetSystemInfoResponse {
+  string app_name = 1;
+  string app_version = 2;
+  string build_time = 3;
+  string git_commit = 4;
+  string go_version = 5;
+  string os = 6;
+  string arch = 7;
+  int64 start_time = 8;
+  int64 uptime_seconds = 9;
+  SystemResources resources = 10;
+}
+
+// 系统资源
+message SystemResources {
+  int64 cpu_count = 1;
+  double cpu_usage = 2;
+  int64 memory_total = 3;
+  int64 memory_used = 4;
+  int64 memory_free = 5;
+  double memory_usage = 6;
+  int64 disk_total = 7;
+  int64 disk_used = 8;
+  int64 disk_free = 9;
+  double disk_usage = 10;
+}
+
+// 获取系统统计响应
+message GetSystemStatsResponse {
+  int32 total_users = 1;
+  int32 active_users = 2;
+  int32 online_users = 3;
+  int32 total_roles = 4;
+  int32 total_permissions = 5;
+  int32 total_organizations = 6;
+  int32 today_logins = 7;
+  int32 today_operations = 8;
+  repeated DailyStatistic login_stats = 9; // 7天登录统计
+  repeated DailyStatistic operation_stats = 10; // 7天操作统计
+}
+
+// 每日统计
+message DailyStatistic {
+  string date = 1; // YYYY-MM-DD
+  int32 count = 2;
+}
+
+// 获取系统配置请求
+message GetSystemConfigRequest {
+  string key = 1 [(validate.rules).string.min_len = 1];
+}
+
+// 获取系统配置响应
+message GetSystemConfigResponse {
+  SystemConfig config = 1;
+}
+
+// 获取系统配置列表请求
+message ListSystemConfigsRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string group_name = 3; // 配置分组筛选
+  string keyword = 4; // 搜索关键词
+  bool is_system = 5; // 是否系统配置筛选
+  bool is_enabled = 6; // 是否启用筛选
+}
+
+// 获取系统配置列表响应
+message ListSystemConfigsResponse {
+  repeated SystemConfig configs = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 更新系统配置请求
+message UpdateSystemConfigRequest {
+  string key = 1 [(validate.rules).string.min_len = 1];
+  string config_value = 2;
+  string description = 3;
+}
+
+// 更新系统配置响应
+message UpdateSystemConfigResponse {
+  SystemConfig config = 1;
+}
+
+// 批量更新系统配置请求
+message BatchUpdateSystemConfigsRequest {
+  repeated SystemConfigUpdate updates = 1 [(validate.rules).repeated.min_items = 1];
+}
+
+// 系统配置更新
+message SystemConfigUpdate {
+  string key = 1 [(validate.rules).string.min_len = 1];
+  string config_value = 2;
+  string description = 3;
+}
+
+// 重置系统配置请求
+message ResetSystemConfigRequest {
+  string key = 1 [(validate.rules).string.min_len = 1];
+}
+
+// 获取操作日志请求
+message GetOperationLogsRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  int64 user_id = 3; // 用户筛选
+  string operation_type = 4; // 操作类型筛选
+  string resource_type = 5; // 资源类型筛选
+  bool is_success = 6; // 是否成功筛选
+  string start_time = 7; // 开始时间
+  string end_time = 8; // 结束时间
+  string keyword = 9; // 搜索关键词
+}
+
+// 获取操作日志响应
+message GetOperationLogsResponse {
+  repeated OperationLog logs = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 获取系统日志请求
+message GetSystemLogsRequest {
+  string level = 1; // 日志级别筛选
+  string start_time = 2;
+  string end_time = 3;
+  string keyword = 4;
+  int32 limit = 5 [(validate.rules).int32 = {gte: 1, lte: 1000}];
+}
+
+// 获取系统日志响应
+message GetSystemLogsResponse {
+  repeated SystemLog logs = 1;
+}
+
+// 清理日志请求
+message CleanupLogsRequest {
+  string log_type = 1 [(validate.rules).string = {in: ["operation", "system", "all"]}];
+  int32 keep_days = 2 [(validate.rules).int32 = {gte: 1, lte: 365}]; // 保留天数
+}
+
+// 清理日志响应
+message CleanupLogsResponse {
+  int32 deleted_count = 1;
+  string message = 2;
+}
+
+// 导出操作日志请求
+message ExportOperationLogsRequest {
+  int64 user_id = 1;
+  string operation_type = 2;
+  string resource_type = 3;
+  string start_time = 4;
+  string end_time = 5;
+  string format = 6 [(validate.rules).string = {in: ["csv", "xlsx"]}]; // 导出格式
+}
+
+// 导出操作日志响应
+message ExportOperationLogsResponse {
+  string download_url = 1;
+  string file_name = 2;
+  int32 total_records = 3;
+}
+
+// 获取在线用户请求
+message GetOnlineUsersRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 3; // 搜索关键词
+}
+
+// 获取在线用户响应
+message GetOnlineUsersResponse {
+  repeated OnlineUser users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 强制用户下线请求
+message ForceUserOfflineRequest {
+  repeated int64 user_ids = 1 [(validate.rules).repeated.min_items = 1];
+  string reason = 2; // 下线原因
+}
+
+// 发送系统通知请求
+message SendSystemNotificationRequest {
+  string title = 1 [(validate.rules).string = {min_len: 1, max_len: 100}];
+  string content = 2 [(validate.rules).string = {min_len: 1, max_len: 1000}];
+  string type = 3 [(validate.rules).string = {in: ["info", "warning", "error", "success"]}];
+  repeated int64 target_user_ids = 4; // 目标用户，为空则发送给所有在线用户
+  bool send_email = 5; // 是否发送邮件
+  bool send_sms = 6; // 是否发送短信
+}
+
+// 获取缓存信息响应
+message GetCacheInfoResponse {
+  repeated CacheInfo caches = 1;
+}
+
+// 缓存信息
+message CacheInfo {
+  string name = 1;
+  string type = 2; // redis, memory
+  int64 total_keys = 3;
+  int64 memory_usage = 4;
+  double hit_rate = 5;
+  string status = 6;
+}
+
+// 清理缓存请求
+message ClearCacheRequest {
+  string cache_type = 1 [(validate.rules).string = {in: ["all", "user", "permission", "config", "session"]}];
+  repeated string keys = 2; // 指定要清理的键
+}
+
+// 数据库备份请求
+message BackupDatabaseRequest {
+  string backup_name = 1; // 备份名称，为空则自动生成
+  string description = 2; // 备份描述
+  repeated string tables = 3; // 指定要备份的表，为空则全库备份
+}
+
+// 数据库备份响应
+message BackupDatabaseResponse {
+  string backup_id = 1;
+  string backup_name = 2;
+  string file_path = 3;
+  int64 file_size = 4;
+}
+
+// 获取备份列表请求
+message ListBackupsRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 3; // 搜索关键词
+}
+
+// 获取备份列表响应
+message ListBackupsResponse {
+  repeated DatabaseBackup backups = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 恢复数据库请求
+message RestoreDatabaseRequest {
+  string backup_id = 1 [(validate.rules).string.min_len = 1];
+  bool confirm = 2; // 确认恢复
+}
+
+// 恢复数据库响应
+message RestoreDatabaseResponse {
+  string task_id = 1;
+  string message = 2;
+}
+
+// 设置维护模式请求
+message SetMaintenanceModeRequest {
+  bool enabled = 1;
+  string message = 2; // 维护信息
+  string estimated_time = 3; // 预计恢复时间
+}
+
+// 获取系统监控指标响应
+message GetSystemMetricsResponse {
+  SystemResources resources = 1;
+  DatabaseMetrics database = 2;
+  RedisMetrics redis = 3;
+  APIMetrics api = 4;
+}
+
+// 数据库指标
+message DatabaseMetrics {
+  int32 active_connections = 1;
+  int32 idle_connections = 2;
+  int64 total_queries = 3;
+  double avg_query_time = 4;
+  int64 slow_queries = 5;
+}
+
+// Redis指标
+message RedisMetrics {
+  int32 connected_clients = 1;
+  int64 total_keys = 2;
+  int64 memory_usage = 3;
+  double hit_rate = 4;
+  int64 total_commands = 5;
+}
+
+// API指标
+message APIMetrics {
+  int64 total_requests = 1;
+  double avg_response_time = 2;
+  double success_rate = 3;
+  int32 active_sessions = 4;
+  repeated EndpointMetric top_endpoints = 5;
+}
+
+// 端点指标
+message EndpointMetric {
+  string path = 1;
+  string method = 2;
+  int64 request_count = 3;
+  double avg_response_time = 4;
+  double error_rate = 5;
+}
+
+// 系统配置
+message SystemConfig {
+  int64 id = 1;
+  string config_key = 2;
+  string config_value = 3;
+  string config_type = 4;
+  string description = 5;
+  bool is_system = 6;
+  bool is_encrypted = 7;
+  string group_name = 8;
+  int32 sort_order = 9;
+  bool is_enabled = 10;
+  int64 created_by = 11;
+  int64 updated_by = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+// 操作日志
+message OperationLog {
+  int64 id = 1;
+  int64 user_id = 2;
+  string username = 3;
+  string operation_type = 4;
+  string resource_type = 5;
+  int64 resource_id = 6;
+  string operation_desc = 7;
+  string request_method = 8;
+  string request_url = 9;
+  string request_params = 10;
+  string request_body = 11;
+  int32 response_status = 12;
+  string response_body = 13;
+  string ip_address = 14;
+  string user_agent = 15;
+  int32 execution_time = 16;
+  bool is_success = 17;
+  string error_message = 18;
+  string session_id = 19;
+  string trace_id = 20;
+  string created_at = 21;
+}
+
+// 系统日志
+message SystemLog {
+  string timestamp = 1;
+  string level = 2;
+  string message = 3;
+  string module = 4;
+  string trace_id = 5;
+  map<string, string> fields = 6;
+}
+
+// 在线用户
+message OnlineUser {
+  int64 user_id = 1;
+  string username = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string avatar_url = 5;
+  string ip_address = 6;
+  string user_agent = 7;
+  string device_type = 8;
+  string location = 9;
+  string login_time = 10;
+  string last_activity = 11;
+  int32 session_count = 12; // 会话数量
+}
+
+// 数据库备份
+message DatabaseBackup {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string file_path = 4;
+  int64 file_size = 5;
+  string status = 6; // pending, success, failed
+  string error_message = 7;
+  int64 created_by = 8;
+  string created_at = 9;
+}

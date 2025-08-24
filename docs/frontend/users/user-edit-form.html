@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑用户信息</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 面包屑导航 */
+        .breadcrumb {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .breadcrumb-item {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .breadcrumb-item:hover {
+            color: #1890ff;
+        }
+
+        .breadcrumb-item.active {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .breadcrumb-separator {
+            color: #999;
+        }
+
+        /* 主内容卡片 */
+        .main-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* 头部区域 */
+        .card-header {
+            padding: 24px 24px 0 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* 选项卡样式 */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .tab-item {
+            padding: 16px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            background: none;
+            border: none;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .tab-item:hover {
+            color: #1890ff;
+        }
+
+        .tab-item.active {
+            color: #1890ff;
+            font-weight: 500;
+        }
+
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #1890ff;
+        }
+
+        /* 内容区域 */
+        .tab-content {
+            display: none;
+            padding: 32px 24px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 头像上传区域 */
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 32px;
+            padding: 24px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .avatar-upload {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .avatar-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            font-size: 32px;
+            color: #999;
+        }
+
+        .avatar-upload:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .avatar-overlay-text {
+            color: white;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .avatar-info h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .avatar-info p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 表单样式 */
+        .form-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .form-group.full-width {
+            flex: 1 1 100%;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .required {
+            color: #ff4d4f;
+            margin-left: 4px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #fff;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* 文本域包装器 */
+        .textarea-wrapper {
+            position: relative;
+        }
+
+        /* 内部字符计数 */
+        .character-count-internal {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 12px;
+            color: #999;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .character-count-internal .current-count {
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* 开关样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 22px;
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .switch-input:checked + .switch-slider {
+            background-color: #1890ff;
+        }
+
+        .switch-input:checked + .switch-slider:before {
+            transform: translateX(22px);
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .btn-primary {
+            background-color: #1890ff;
+            border-color: #1890ff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #40a9ff;
+            border-color: #40a9ff;
+        }
+
+        .btn-default {
+            color: #333;
+        }
+
+        .btn-default:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        /* 底部操作栏 */
+        .form-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 权限管理样式 */
+        .permission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .permission-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .permission-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .action-btn.select-all {
+            border-color: #52c41a;
+            color: #52c41a;
+        }
+
+        .action-btn.select-all:hover {
+            background: #52c41a;
+            color: white;
+        }
+
+        .action-btn.clear-all {
+            border-color: #ff4d4f;
+            color: #ff4d4f;
+        }
+
+        .action-btn.clear-all:hover {
+            background: #ff4d4f;
+            color: white;
+        }
+
+        .action-btn.expand-all {
+            display: flex;
+            align-items: center;
+        }
+
+        .expand-all-icon {
+            transition: transform 0.3s;
+        }
+
+        .expand-all-icon.collapsed {
+            transform: rotate(180deg);
+        }
+
+        /* 权限模块 */
+        .permission-module {
+            margin-bottom: 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .module-header {
+            padding: 16px 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .module-header:hover {
+            background: #f5f5f5;
+        }
+
+        .module-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .module-icon {
+            width: 20px;
+            height: 20px;
+            color: #1890ff;
+        }
+
+        .module-details h4 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 4px 0;
+        }
+
+        .module-details p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+
+        .module-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .module-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .module-actions .action-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .expand-arrow {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s;
+            color: #666;
+        }
+
+        .expand-arrow.expanded {
+            transform: rotate(180deg);
+        }
+
+        /* 权限详情 */
+        .module-permissions {
+            display: none;
+            padding: 20px;
+            background: white;
+        }
+
+        .module-permissions.expanded {
+            display: block;
+        }
+
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+
+        .permission-item:hover {
+            border-color: #d9d9d9;
+            background: #f5f5f5;
+        }
+
+        .permission-checkbox {
+            margin: 0;
+        }
+
+        .permission-label {
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .permission-description {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        /* 复选框美化 */
+        .permission-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: #1890ff;
+            cursor: pointer;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+
+            .tab-item {
+                white-space: nowrap;
+                min-width: 100px;
+            }
+
+            .avatar-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .form-footer {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 面包屑导航 -->
+        <nav class="breadcrumb">
+            <div class="breadcrumb-list">
+                <a href="/users" class="breadcrumb-item">用户管理</a>
+                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-item active">编辑用户信息</span>
+            </div>
+        </nav>
+
+        <!-- 主内容卡片 -->
+        <div class="main-card">
+            <!-- 卡片头部 -->
+            <div class="card-header">
+                <div class="header-content">
+                    <h1 class="page-title">编辑用户信息</h1>
+                </div>
+
+                <!-- 选项卡 -->
+                <div class="tabs">
+                    <button class="tab-item active" data-tab="basic">基本资料</button>
+                    <button class="tab-item" data-tab="details">详细信息</button>
+                    <button class="tab-item" data-tab="roles">角色权限</button>
+                </div>
+            </div>
+
+            <!-- 基本资料选项卡 -->
+            <div class="tab-content active" id="basic">
+                <!-- 头像上传区域 -->
+                <div class="avatar-section">
+                    <div class="avatar-upload" onclick="document.getElementById('avatarInput').click()">
+                        <div class="avatar-image">
+                            <span class="avatar-placeholder">👤</span>
+                            <img id="avatarPreview" style="display: none;" alt="用户头像">
+                        </div>
+                        <div class="avatar-overlay">
+                            <div class="avatar-overlay-text">点击上传<br>头像</div>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="avatar-info">
+                        <h4>用户头像</h4>
+                        <p>点击头像上传新图片，建议尺寸：200x200px</p>
+                    </div>
+                </div>
+
+                <form id="basicForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">用户名<span class="required">*</span></label>
+                            <input type="text" class="form-input" id="username" value="john_doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">电子邮件<span class="required">*</span></label>
+                            <input type="email" class="form-input" id="email" value="john.doe@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">姓<span class="required">*</span></label>
+                            <input type="text" class="form-input" id="lastName" value="Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">名<span class="required">*</span></label>
+                            <input type="text" class="form-input" id="firstName" value="John" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">账户状态</label>
+                            <div style="padding-top: 12px;">
+                                <label class="switch">
+                                    <input type="checkbox" class="switch-input" id="isActive" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                                <span style="margin-left: 12px; font-size: 14px;">启用</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <!-- 占位，保持布局平衡 -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 详细信息选项卡 -->
+            <div class="tab-content" id="details">
+                <form id="detailsForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">性别</label>
+                            <select class="form-select" id="gender">
+                                <option value="">请选择</option>
+                                <option value="M" selected>男</option>
+                                <option value="F">女</option>
+                                <option value="O">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">生日</label>
+                            <input type="date" class="form-input" id="birthDate" value="1990-05-15">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">手机号码</label>
+                            <input type="tel" class="form-input" id="phone" value="+86 138-0013-8000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">联系地址</label>
+                            <input type="text" class="form-input" id="address" value="北京市朝阳区望京街道xxx号" placeholder="详细地址">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">紧急联系人</label>
+                            <input type="text" class="form-input" id="emergencyContact" value="Jane Doe" placeholder="紧急联系人姓名">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">紧急联系电话</label>
+                            <input type="tel" class="form-input" id="emergencyPhone" value="+86 139-0013-9000" placeholder="紧急联系人电话">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label class="form-label">个人简介</label>
+                            <div class="textarea-wrapper">
+                                <textarea class="form-textarea" id="biography" placeholder="请输入个人简介..." maxlength="1000">资深全栈开发工程师，专注于Web应用开发和系统架构设计。熟练掌握React、Node.js、Python等技术栈，具有丰富的项目管理和团队协作经验。</textarea>
+                                <div class="character-count-internal">
+                                    <span class="current-count" id="biographyCount">74</span>/1000
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 角色权限选项卡 -->
+            <div class="tab-content" id="roles">
+                <!-- 权限管理头部 -->
+                <div class="permission-header">
+                    <h3 class="permission-title">权限设置</h3>
+                    <div class="permission-actions">
+                        <button class="action-btn select-all" onclick="selectAllPermissions()">全选</button>
+                        <button class="action-btn clear-all" onclick="clearAllPermissions()">全部取消</button>
+                        <button class="action-btn expand-all" onclick="toggleAllModules()">
+                            <svg class="expand-all-icon" viewBox="0 0 24 24" fill="currentColor" style="width: 14px; height: 14px; margin-right: 4px;">
+                                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
+                            <span class="expand-all-text">展开全部</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 用户管理模块 -->
+                <div class="permission-module">
+                    <div class="module-header" onclick="toggleModule('user-management')">
+                        <div class="module-info">
+                            <svg class="module-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            <div class="module-details">
+                                <h4>用户管理</h4>
+                                <p>管理用户账户、权限分配和用户信息</p>
+                            </div>
+                        </div>
+                        <div class="module-controls">
+                            <div class="module-actions">
+                                <button class="action-btn select-all" onclick="selectModulePermissions('user-management', true); event.stopPropagation();">全选</button>
+                                <button class="action-btn clear-all" onclick="selectModulePermissions('user-management', false); event.stopPropagation();">取消</button>
+                            </div>
+                            <svg class="expand-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="module-permissions" id="user-management-permissions">
+                        <div class="permission-grid">
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="user-list" checked>
+                                <label class="permission-label" for="user-list">查看用户列表</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="user-create" checked>
+                                <label class="permission-label" for="user-create">创建用户</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="user-edit" checked>
+                                <label class="permission-label" for="user-edit">编辑用户信息</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="user-delete">
+                                <label class="permission-label" for="user-delete">删除用户</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="user-reset-password" checked>
+                                <label class="permission-label" for="user-reset-password">重置密码</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="user-assign-roles" checked>
+                                <label class="permission-label" for="user-assign-roles">分配角色</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 系统管理模块 -->
+                <div class="permission-module">
+                    <div class="module-header" onclick="toggleModule('system-management')">
+                        <div class="module-info">
+                            <svg class="module-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                            </svg>
+                            <div class="module-details">
+                                <h4>系统管理</h4>
+                                <p>系统配置、参数设置和维护功能</p>
+                            </div>
+                        </div>
+                        <div class="module-controls">
+                            <div class="module-actions">
+                                <button class="action-btn select-all" onclick="selectModulePermissions('system-management', true); event.stopPropagation();">全选</button>
+                                <button class="action-btn clear-all" onclick="selectModulePermissions('system-management', false); event.stopPropagation();">取消</button>
+                            </div>
+                            <svg class="expand-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="module-permissions" id="system-management-permissions">
+                        <div class="permission-grid">
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="system-config">
+                                <label class="permission-label" for="system-config">系统配置</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="system-backup">
+                                <label class="permission-label" for="system-backup">数据备份</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="system-logs">
+                                <label class="permission-label" for="system-logs">系统日志</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="system-monitor">
+                                <label class="permission-label" for="system-monitor">系统监控</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内容管理模块 -->
+                <div class="permission-module">
+                    <div class="module-header" onclick="toggleModule('content-management')">
+                        <div class="module-info">
+                            <svg class="module-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                            </svg>
+                            <div class="module-details">
+                                <h4>内容管理</h4>
+                                <p>文章、页面和媒体内容管理</p>
+                            </div>
+                        </div>
+                        <div class="module-controls">
+                            <div class="module-actions">
+                                <button class="action-btn select-all" onclick="selectModulePermissions('content-management', true); event.stopPropagation();">全选</button>
+                                <button class="action-btn clear-all" onclick="selectModulePermissions('content-management', false); event.stopPropagation();">取消</button>
+                            </div>
+                            <svg class="expand-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="module-permissions" id="content-management-permissions">
+                        <div class="permission-grid">
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="content-create" checked>
+                                <label class="permission-label" for="content-create">创建内容</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="content-edit" checked>
+                                <label class="permission-label" for="content-edit">编辑内容</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="content-delete">
+                                <label class="permission-label" for="content-delete">删除内容</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="content-publish" checked>
+                                <label class="permission-label" for="content-publish">发布内容</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="media-upload" checked>
+                                <label class="permission-label" for="media-upload">上传媒体</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="media-manage">
+                                <label class="permission-label" for="media-manage">媒体管理</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数据分析模块 -->
+                <div class="permission-module">
+                    <div class="module-header" onclick="toggleModule('analytics')">
+                        <div class="module-info">
+                            <svg class="module-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16,11.78L20.24,4.45L21.97,5.45L16.74,14.5L10.23,10.75L5.46,19H22V21H2V3H4V17.54L9.5,8L16,11.78Z"/>
+                            </svg>
+                            <div class="module-details">
+                                <h4>数据分析</h4>
+                                <p>报表查看、数据统计和分析功能</p>
+                            </div>
+                        </div>
+                        <div class="module-controls">
+                            <div class="module-actions">
+                                <button class="action-btn select-all" onclick="selectModulePermissions('analytics', true); event.stopPropagation();">全选</button>
+                                <button class="action-btn clear-all" onclick="selectModulePermissions('analytics', false); event.stopPropagation();">取消</button>
+                            </div>
+                            <svg class="expand-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="module-permissions" id="analytics-permissions">
+                        <div class="permission-grid">
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="analytics-view" checked>
+                                <label class="permission-label" for="analytics-view">查看报表</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="analytics-export" checked>
+                                <label class="permission-label" for="analytics-export">导出数据</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="analytics-dashboard">
+                                <label class="permission-label" for="analytics-dashboard">数据大屏</label>
+                            </div>
+                            <div class="permission-item">
+                                <input type="checkbox" class="permission-checkbox" id="analytics-custom">
+                                <label class="permission-label" for="analytics-custom">自定义报表</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 备注说明 -->
+                <div class="form-row" style="margin-top: 32px;">
+                    <div class="form-group full-width">
+                        <label class="form-label">权限备注</label>
+                        <textarea class="form-textarea" id="permissionNotes" placeholder="请输入权限分配的备注说明...">该用户负责内容管理和数据分析相关工作，具备对应模块的操作权限。</textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 选项卡切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-item');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+
+                    // 移除所有活跃状态
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    // 添加活跃状态
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+
+            // 头像上传预览
+            const avatarInput = document.getElementById('avatarInput');
+            const avatarPreview = document.getElementById('avatarPreview');
+            const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+
+            avatarInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        avatarPreview.src = e.target.result;
+                        avatarPreview.style.display = 'block';
+                        avatarPlaceholder.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 权限模块展开/收起功能
+            window.toggleModule = function(moduleId) {
+                const modulePermissions = document.getElementById(moduleId + '-permissions');
+                const arrow = event.currentTarget.querySelector('.expand-arrow');
+                
+                if (modulePermissions.classList.contains('expanded')) {
+                    modulePermissions.classList.remove('expanded');
+                    arrow.classList.remove('expanded');
+                } else {
+                    modulePermissions.classList.add('expanded');
+                    arrow.classList.add('expanded');
+                }
+            };
+
+            // 全选权限
+            window.selectAllPermissions = function() {
+                const checkboxes = document.querySelectorAll('.permission-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+            };
+
+            // 清除所有权限
+            window.clearAllPermissions = function() {
+                const checkboxes = document.querySelectorAll('.permission-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            };
+
+            // 模块权限全选/取消
+            window.selectModulePermissions = function(moduleId, select) {
+                const moduleCheckboxes = document.querySelectorAll(`#${moduleId}-permissions .permission-checkbox`);
+                moduleCheckboxes.forEach(checkbox => {
+                    checkbox.checked = select;
+                });
+            };
+
+            // 展开/收起所有权限模块
+            window.toggleAllModules = function() {
+                const allModules = document.querySelectorAll('.permission-module');
+                const expandIcon = document.querySelector('.expand-all-icon');
+                const expandText = document.querySelector('.expand-all-text');
+                let isAnyExpanded = false;
+                
+                // 检查是否有任何模块已展开
+                allModules.forEach(module => {
+                    const permissions = module.querySelector('.module-permissions');
+                    if (permissions.classList.contains('expanded')) {
+                        isAnyExpanded = true;
+                    }
+                });
+                
+                // 如果有展开的，则全部收起；否则全部展开
+                const shouldExpand = !isAnyExpanded;
+                
+                allModules.forEach(module => {
+                    const permissions = module.querySelector('.module-permissions');
+                    const arrow = module.querySelector('.expand-arrow');
+                    
+                    if (shouldExpand) {
+                        permissions.classList.add('expanded');
+                        arrow.classList.add('expanded');
+                    } else {
+                        permissions.classList.remove('expanded');
+                        arrow.classList.remove('expanded');
+                    }
+                });
+                
+                // 更新展开/收起按钮的状态
+                if (shouldExpand) {
+                    expandIcon.classList.remove('collapsed');
+                    expandText.textContent = '收起全部';
+                } else {
+                    expandIcon.classList.add('collapsed');
+                    expandText.textContent = '展开全部';
+                }
+            };
+        });
+
+        // 保存用户信息
+        function saveUserInfo() {
+            // 收集基本资料
+            const basicData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                lastName: document.getElementById('lastName').value,
+                firstName: document.getElementById('firstName').value,
+                isActive: document.getElementById('isActive').checked
+            };
+
+            // 收集详细信息
+            const detailsData = {
+                gender: document.getElementById('gender').value,
+                birthDate: document.getElementById('birthDate').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                emergencyContact: document.getElementById('emergencyContact').value,
+                emergencyPhone: document.getElementById('emergencyPhone').value,
+                biography: document.getElementById('biography').value
+            };
+
+            // 收集权限信息
+            const selectedPermissions = [];
+            const checkboxes = document.querySelectorAll('.permission-checkbox:checked');
+            checkboxes.forEach(checkbox => {
+                selectedPermissions.push(checkbox.id);
+            });
+
+            const permissionsData = {
+                permissions: selectedPermissions,
+                permissionNotes: document.getElementById('permissionNotes').value
+            };
+
+            console.log('保存用户信息:', { basicData, detailsData, permissionsData });
+
+            // 这里应该调用API保存数据
+            alert('用户信息已保存！');
+        }
+
+        // 表单验证
+        function validateForm() {
+            const requiredFields = ['username', 'email', 'lastName', 'firstName'];
+            let isValid = true;
+
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#ff4d4f';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#d9d9d9';
+                }
+            });
+
+            return isValid;
+        }
+
+            // 个人简介字符计数
+            const biographyTextarea = document.getElementById('biography');
+            const biographyCount = document.getElementById('biographyCount');
+            
+            function updateCharacterCount() {
+                const currentLength = biographyTextarea.value.length;
+                biographyCount.textContent = currentLength;
+            }
+            
+            // 初始化计数
+            updateCharacterCount();
+            
+            // 监听输入事件
+            biographyTextarea.addEventListener('input', updateCharacterCount);
+
+        // 添加实时验证
+        document.addEventListener('DOMContentLoaded', function() {
+            const requiredFields = ['username', 'email', 'lastName', 'firstName'];
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        this.style.borderColor = '#ff4d4f';
+                    } else {
+                        this.style.borderColor = '#d9d9d9';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

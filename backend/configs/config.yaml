@@ -1,0 +1,63 @@
+server:
+  http:
+    addr: 0.0.0.0:58080
+    timeout: 30s
+  grpc:
+    addr: 0.0.0.0:59090
+    timeout: 30s
+
+data:
+  database:
+    driver: postgres
+    source: postgres://postgres:@localhost:5432/erp_system?sslmode=disable
+  redis:
+    addr: localhost:6379
+    password: ""
+    db: 0
+  jwt:
+    secret_key: your-super-secret-jwt-key-here
+    access_token_expire: 7200  # 2 hours in seconds
+    refresh_token_expire: 2592000  # 30 days in seconds
+
+log:
+  level: info
+  format: json
+
+upload:
+  max_size: 10MB
+  path: ./uploads
+  allowed_types:
+    - image/jpeg
+    - image/png
+    - image/gif
+
+cors:
+  allow_origins:
+    - http://localhost:58000
+    - http://127.0.0.1:58000
+    - http://localhost:58003
+    - http://127.0.0.1:58003
+    - https://xx.com
+  allow_credentials: true
+  allow_headers:
+    - Content-Type
+    - Authorization
+    - X-Requested-With
+  allow_methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
+
+security:
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+  totp:
+    issuer: "ERP System"
+  password:
+    min_length: 8
+    require_special: true
+    require_number: true

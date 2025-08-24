@@ -1,0 +1,67 @@
+server:
+  http:
+    addr: 0.0.0.0:58080
+    timeout: 30s
+  grpc:
+    addr: 0.0.0.0:9090
+    timeout: 30s
+
+data:
+  database:
+    driver: sqlite3
+    source: ./erp_dev.db
+  redis:
+    addr: localhost:6379
+    password: ""
+    db: 0
+  jwt:
+    secret_key: dev-jwt-secret-key-for-testing-only
+    access_token_expire: 7200  # 2 hours in seconds
+    refresh_token_expire: 2592000  # 30 days in seconds
+
+auth:
+  jwt_secret: dev-jwt-secret-key-for-testing-only
+  jwt_expire: 24h
+  refresh_token_expire: 720h # 30 days
+
+log:
+  level: debug
+  format: json
+
+upload:
+  max_size: 10MB
+  path: ./uploads
+  allowed_types:
+    - image/jpeg
+    - image/png
+    - image/gif
+
+cors:
+  allow_origins:
+    - http://localhost:3000
+    - http://127.0.0.1:3000
+    - http://localhost:58003
+    - http://127.0.0.1:58003
+  allow_credentials: true
+  allow_headers:
+    - Content-Type
+    - Authorization
+    - X-Requested-With
+  allow_methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
+
+security:
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+  totp:
+    issuer: "ERP System Dev"
+  password:
+    min_length: 6
+    require_special: false
+    require_number: true

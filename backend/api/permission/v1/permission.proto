@@ -1,0 +1,415 @@
+syntax = "proto3";
+
+package api.permission.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/your-org/erp-system/api/permission/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.permission.v1";
+option java_outer_classname = "PermissionProtoV1";
+
+// 权限管理服务
+service PermissionService {
+  // 创建权限
+  rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions"
+      body: "*"
+    };
+  }
+
+  // 获取权限列表
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions"
+    };
+  }
+
+  // 获取权限树
+  rpc GetPermissionTree(GetPermissionTreeRequest) returns (GetPermissionTreeResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/tree"
+    };
+  }
+
+  // 获取权限详情
+  rpc GetPermission(GetPermissionRequest) returns (GetPermissionResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{id}"
+    };
+  }
+
+  // 更新权限
+  rpc UpdatePermission(UpdatePermissionRequest) returns (UpdatePermissionResponse) {
+    option (google.api.http) = {
+      put: "/v1/permissions/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除权限
+  rpc DeletePermission(DeletePermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/permissions/{id}"
+    };
+  }
+
+  // 批量删除权限
+  rpc BatchDeletePermissions(BatchDeletePermissionsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/permissions/batch-delete"
+      body: "*"
+    };
+  }
+
+  // 启用/禁用权限
+  rpc TogglePermissionStatus(TogglePermissionStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/permissions/{id}/toggle-status"
+      body: "*"
+    };
+  }
+
+  // 获取权限的角色
+  rpc GetPermissionRoles(GetPermissionRolesRequest) returns (GetPermissionRolesResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{permission_id}/roles"
+    };
+  }
+
+  // 检查权限
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/check"
+      body: "*"
+    };
+  }
+
+  // 批量检查权限
+  rpc BatchCheckPermissions(BatchCheckPermissionsRequest) returns (BatchCheckPermissionsResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/batch-check"
+      body: "*"
+    };
+  }
+
+  // 获取用户权限菜单
+  rpc GetUserMenus(GetUserMenusRequest) returns (GetUserMenusResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/menus"
+    };
+  }
+
+  // 获取模块权限
+  rpc GetModulePermissions(GetModulePermissionsRequest) returns (GetModulePermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/modules/{module}"
+    };
+  }
+
+  // 同步API权限
+  rpc SyncAPIPermissions(SyncAPIPermissionsRequest) returns (SyncAPIPermissionsResponse) {
+    option (google.api.http) = {
+      post: "/v1/permissions/sync-api"
+      body: "*"
+    };
+  }
+
+  // 权限统计信息
+  rpc GetPermissionStats(google.protobuf.Empty) returns (GetPermissionStatsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/stats"
+    };
+  }
+}
+
+// 创建权限请求
+message CreatePermissionRequest {
+  int64 parent_id = 1; // 父权限ID，0表示顶级权限
+  string name = 2 [(validate.rules).string = {min_len: 1, max_len: 100}];
+  string code = 3 [(validate.rules).string = {min_len: 1, max_len: 100, pattern: "^[a-z0-9._]+$"}];
+  string resource = 4 [(validate.rules).string = {min_len: 1, max_len: 50}];
+  string action = 5 [(validate.rules).string = {min_len: 1, max_len: 50}];
+  string module = 6 [(validate.rules).string = {min_len: 1, max_len: 50}];
+  string description = 7 [(validate.rules).string.max_len = 500];
+  bool is_menu = 8;
+  bool is_button = 9;
+  bool is_api = 10;
+  string menu_url = 11 [(validate.rules).string.max_len = 200];
+  string menu_icon = 12 [(validate.rules).string.max_len = 50];
+  string api_path = 13 [(validate.rules).string.max_len = 200];
+  string api_method = 14 [(validate.rules).string = {in: ["GET", "POST", "PUT", "DELETE", "PATCH"]}];
+  int32 sort_order = 15 [(validate.rules).int32.gte = 0];
+  bool is_enabled = 16;
+}
+
+// 创建权限响应
+message CreatePermissionResponse {
+  Permission permission = 1;
+}
+
+// 获取权限列表请求
+message ListPermissionsRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 3; // 搜索关键词
+  string module = 4; // 模块筛选
+  string permission_type = 5; // 权限类型筛选：menu, button, api
+  int64 parent_id = 6; // 父权限筛选
+  bool is_enabled = 7; // 是否启用筛选
+  string sort_by = 8; // 排序字段
+  string sort_order = 9 [(validate.rules).string = {in: ["asc", "desc"]}]; // 排序方向
+}
+
+// 获取权限列表响应
+message ListPermissionsResponse {
+  repeated Permission permissions = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 获取权限树请求
+message GetPermissionTreeRequest {
+  string module = 1; // 模块筛选
+  string permission_type = 2; // 权限类型筛选
+  bool only_enabled = 3; // 只获取启用的权限
+  int64 role_id = 4; // 角色ID，用于标记已分配的权限
+}
+
+// 获取权限树响应
+message GetPermissionTreeResponse {
+  repeated PermissionTreeNode tree = 1;
+}
+
+// 获取权限详情请求
+message GetPermissionRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取权限详情响应
+message GetPermissionResponse {
+  Permission permission = 1;
+  repeated Permission children = 2; // 子权限
+  int32 role_count = 3; // 使用此权限的角色数量
+}
+
+// 更新权限请求
+message UpdatePermissionRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  int64 parent_id = 2;
+  string name = 3 [(validate.rules).string.max_len = 100];
+  string code = 4 [(validate.rules).string = {max_len: 100, pattern: "^[a-z0-9._]+$"}];
+  string resource = 5 [(validate.rules).string.max_len = 50];
+  string action = 6 [(validate.rules).string.max_len = 50];
+  string module = 7 [(validate.rules).string.max_len = 50];
+  string description = 8 [(validate.rules).string.max_len = 500];
+  bool is_menu = 9;
+  bool is_button = 10;
+  bool is_api = 11;
+  string menu_url = 12 [(validate.rules).string.max_len = 200];
+  string menu_icon = 13 [(validate.rules).string.max_len = 50];
+  string api_path = 14 [(validate.rules).string.max_len = 200];
+  string api_method = 15 [(validate.rules).string = {in: ["GET", "POST", "PUT", "DELETE", "PATCH"]}];
+  int32 sort_order = 16 [(validate.rules).int32.gte = 0];
+  bool is_enabled = 17;
+}
+
+// 更新权限响应
+message UpdatePermissionResponse {
+  Permission permission = 1;
+}
+
+// 删除权限请求
+message DeletePermissionRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool force = 2; // 强制删除，即使有子权限
+}
+
+// 批量删除权限请求
+message BatchDeletePermissionsRequest {
+  repeated int64 ids = 1 [(validate.rules).repeated.min_items = 1];
+  bool force = 2; // 强制删除
+}
+
+// 切换权限状态请求
+message TogglePermissionStatusRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool is_enabled = 2;
+}
+
+// 获取权限的角色请求
+message GetPermissionRolesRequest {
+  int64 permission_id = 1 [(validate.rules).int64.gt = 0];
+  int32 page = 2 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 3 [(validate.rules).int32 = {gte: 1, lte: 100}];
+}
+
+// 获取权限的角色响应
+message GetPermissionRolesResponse {
+  repeated PermissionRole permission_roles = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 检查权限请求
+message CheckPermissionRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+  string permission_code = 2 [(validate.rules).string.min_len = 1];
+}
+
+// 检查权限响应
+message CheckPermissionResponse {
+  bool has_permission = 1;
+}
+
+// 批量检查权限请求
+message BatchCheckPermissionsRequest {
+  int64 user_id = 1 [(validate.rules).int64.gt = 0];
+  repeated string permission_codes = 2 [(validate.rules).repeated.min_items = 1];
+}
+
+// 批量检查权限响应
+message BatchCheckPermissionsResponse {
+  map<string, bool> permissions = 1; // permission_code -> has_permission
+}
+
+// 获取用户菜单请求
+message GetUserMenusRequest {
+  int64 user_id = 1; // 不传则使用当前登录用户
+}
+
+// 获取用户菜单响应
+message GetUserMenusResponse {
+  repeated MenuTreeNode menus = 1;
+}
+
+// 获取模块权限请求
+message GetModulePermissionsRequest {
+  string module = 1 [(validate.rules).string.min_len = 1];
+  string permission_type = 2; // 权限类型筛选
+}
+
+// 获取模块权限响应
+message GetModulePermissionsResponse {
+  repeated Permission permissions = 1;
+}
+
+// 同步API权限请求
+message SyncAPIPermissionsRequest {
+  repeated APIPermission api_permissions = 1; // API权限列表
+  bool auto_create = 2; // 自动创建不存在的权限
+  bool auto_disable = 3; // 自动禁用不在列表中的API权限
+}
+
+// 同步API权限响应
+message SyncAPIPermissionsResponse {
+  int32 created_count = 1; // 创建数量
+  int32 updated_count = 2; // 更新数量
+  int32 disabled_count = 3; // 禁用数量
+  repeated string errors = 4; // 错误信息
+}
+
+// 权限统计响应
+message GetPermissionStatsResponse {
+  int32 total_permissions = 1; // 总权限数
+  int32 menu_permissions = 2; // 菜单权限数
+  int32 button_permissions = 3; // 按钮权限数
+  int32 api_permissions = 4; // API权限数
+  int32 enabled_permissions = 5; // 启用权限数
+  int32 disabled_permissions = 6; // 禁用权限数
+  repeated ModulePermissionStat module_stats = 7; // 模块统计
+}
+
+// 权限信息
+message Permission {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string code = 4;
+  string resource = 5;
+  string action = 6;
+  string module = 7;
+  string description = 8;
+  bool is_menu = 9;
+  bool is_button = 10;
+  bool is_api = 11;
+  string menu_url = 12;
+  string menu_icon = 13;
+  string api_path = 14;
+  string api_method = 15;
+  int32 level = 16;
+  int32 sort_order = 17;
+  bool is_enabled = 18;
+  int64 created_by = 19;
+  int64 updated_by = 20;
+  string created_at = 21;
+  string updated_at = 22;
+}
+
+// 权限树节点
+message PermissionTreeNode {
+  Permission permission = 1;
+  repeated PermissionTreeNode children = 2;
+  bool checked = 3; // 是否选中（用于角色权限分配）
+  bool expanded = 4; // 是否展开
+}
+
+// 权限角色
+message PermissionRole {
+  int64 id = 1;
+  int64 role_id = 2;
+  int64 permission_id = 3;
+  bool is_granted = 4;
+  int64 granted_by = 5;
+  string granted_at = 6;
+  string created_at = 7;
+  Role role = 8; // 角色详情
+}
+
+// 角色信息（简化版）
+message Role {
+  int64 id = 1;
+  string name = 2;
+  string code = 3;
+  string description = 4;
+  bool is_system_role = 5;
+  bool is_enabled = 6;
+}
+
+// 菜单树节点
+message MenuTreeNode {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string code = 4;
+  string url = 5;
+  string icon = 6;
+  int32 sort_order = 7;
+  repeated MenuTreeNode children = 8;
+  map<string, string> meta = 9; // 菜单元数据
+}
+
+// API权限
+message APIPermission {
+  string path = 1;
+  string method = 2;
+  string name = 3;
+  string description = 4;
+  string module = 5;
+  string resource = 6;
+  string action = 7;
+}
+
+// 模块权限统计
+message ModulePermissionStat {
+  string module = 1;
+  int32 total_count = 2;
+  int32 menu_count = 3;
+  int32 button_count = 4;
+  int32 api_count = 5;
+}

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户列表过滤器演示</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        
+        .header {
+            padding: 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #374151;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            border-color: #6366f1;
+            background: #f8fafc;
+        }
+        
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        
+        .btn-primary:hover {
+            background: #5856eb;
+        }
+        
+        /* 过滤器面板 */
+        .filter-panel {
+            display: none;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 20px 24px;
+        }
+        
+        .filter-panel.active {
+            display: block;
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .filter-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .filter-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 200px;
+        }
+        
+        .filter-item label {
+            font-size: 14px;
+            color: #374151;
+            width: 80px;
+            flex-shrink: 0;
+        }
+        
+        .filter-item select,
+        .filter-item input {
+            flex: 1;
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .filter-condition {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .condition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .condition-logic {
+            font-size: 12px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .remove-condition {
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        
+        .remove-condition:hover {
+            background: #fef2f2;
+        }
+        
+        .add-condition {
+            border: 2px dashed #d1d5db;
+            padding: 16px;
+            text-align: center;
+            color: #6b7280;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .add-condition:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+            background: #f8fafc;
+        }
+        
+        /* 自定义过滤器管理 */
+        .saved-filters {
+            margin-bottom: 20px;
+        }
+        
+        .saved-filters-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .filter-tag {
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #dbeafe;
+        }
+        
+        .filter-tag:hover {
+            background: #dbeafe;
+        }
+        
+        .filter-tag.active {
+            background: #1d4ed8;
+            color: white;
+        }
+        
+        .filter-tag .remove {
+            color: #6b7280;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+        
+        .filter-tag.active .remove {
+            color: #bfdbfe;
+        }
+        
+        /* 表格样式 */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        th {
+            background: #fafafa;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .status-tag {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .role-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <div class="header">
+            <h1 class="title">用户管理</h1>
+            <div class="toolbar">
+                <button class="btn" onclick="toggleFilter()">
+                    <span>🔍</span> 过滤器
+                </button>
+                <button class="btn" onclick="showSortModal()">
+                    <span>↕️</span> 自定义排序
+                </button>
+                <button class="btn">
+                    <span>📤</span> 导出
+                </button>
+                <button class="btn btn-primary">
+                    <span>➕</span> 创建用户
+                </button>
+            </div>
+        </div>
+        
+        <!-- 过滤器面板 -->
+        <div class="filter-panel" id="filterPanel">
+            <div class="filter-header">
+                <div class="filter-title">过滤器设置</div>
+                <div class="filter-actions">
+                    <button class="btn" onclick="saveFilter()">保存过滤器</button>
+                    <button class="btn" onclick="clearFilters()">清空过滤器</button>
+                    <button class="btn" onclick="applyFilters()">应用过滤器</button>
+                </div>
+            </div>
+            
+            <!-- 已保存的过滤器 -->
+            <div class="saved-filters">
+                <div class="saved-filters-title">已保存的过滤器</div>
+                <div class="filter-tags" id="savedFilters">
+                    <div class="filter-tag" onclick="loadFilter('active-users')">
+                        启用用户
+                        <span class="remove" onclick="event.stopPropagation(); deleteFilter('active-users')">×</span>
+                    </div>
+                    <div class="filter-tag" onclick="loadFilter('admin-roles')">
+                        管理员角色
+                        <span class="remove" onclick="event.stopPropagation(); deleteFilter('admin-roles')">×</span>
+                    </div>
+                    <div class="filter-tag" onclick="loadFilter('recent-users')">
+                        近期创建用户
+                        <span class="remove" onclick="event.stopPropagation(); deleteFilter('recent-users')">×</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 过滤条件 -->
+            <div id="filterConditions">
+                <div class="filter-condition">
+                    <div class="condition-header">
+                        <span class="condition-logic">AND</span>
+                        <span class="remove-condition" onclick="removeCondition(this)">✕</span>
+                    </div>
+                    <div class="filter-content">
+                        <div class="filter-item">
+                            <label>字段</label>
+                            <select>
+                                <option value="name">用户名</option>
+                                <option value="email">邮箱</option>
+                                <option value="role">角色</option>
+                                <option value="status">状态</option>
+                                <option value="created_at">创建时间</option>
+                                <option value="last_login">最后登录</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>条件</label>
+                            <select>
+                                <option value="equals">等于</option>
+                                <option value="contains">包含</option>
+                                <option value="starts_with">开头是</option>
+                                <option value="ends_with">结尾是</option>
+                                <option value="greater_than">大于</option>
+                                <option value="less_than">小于</option>
+                                <option value="between">介于</option>
+                                <option value="in">属于</option>
+                                <option value="not_in">不属于</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>值</label>
+                            <input type="text" placeholder="请输入筛选值">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 添加条件 -->
+            <div class="add-condition" onclick="addCondition()">
+                <span>+ 添加筛选条件</span>
+            </div>
+        </div>
+        
+        <!-- 用户列表表格 -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox"></th>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>最后登录</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="userTable">
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>admin</td>
+                        <td>admin@example.com</td>
+                        <td><span class="role-tag">超级管理员</span></td>
+                        <td><span class="status-tag status-active">启用</span></td>
+                        <td>2024-01-15 14:30</td>
+                        <td>2024-01-01 10:00</td>
+                        <td><button class="btn">编辑</button></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>user001</td>
+                        <td>user001@example.com</td>
+                        <td><span class="role-tag">普通用户</span></td>
+                        <td><span class="status-tag status-active">启用</span></td>
+                        <td>2024-01-14 09:15</td>
+                        <td>2024-01-02 11:30</td>
+                        <td><button class="btn">编辑</button></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>user002</td>
+                        <td>user002@example.com</td>
+                        <td><span class="role-tag">普通用户</span></td>
+                        <td><span class="status-tag status-inactive">禁用</span></td>
+                        <td>2024-01-10 16:45</td>
+                        <td>2024-01-03 15:20</td>
+                        <td><button class="btn">编辑</button></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>manager</td>
+                        <td>manager@example.com</td>
+                        <td><span class="role-tag">管理员</span></td>
+                        <td><span class="status-tag status-active">启用</span></td>
+                        <td>2024-01-13 13:20</td>
+                        <td>2024-01-05 08:45</td>
+                        <td><button class="btn">编辑</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 保存过滤器模态框 -->
+    <div class="modal" id="saveFilterModal">
+        <div class="modal-content">
+            <div class="modal-title">保存过滤器</div>
+            <div class="form-group">
+                <label>过滤器名称</label>
+                <input type="text" id="filterNameInput" placeholder="请输入过滤器名称">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeSaveFilterModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmSaveFilter()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let filterVisible = false;
+        let filterConditions = 1;
+        
+        // 切换过滤器显示
+        function toggleFilter() {
+            const panel = document.getElementById('filterPanel');
+            filterVisible = !filterVisible;
+            panel.classList.toggle('active', filterVisible);
+        }
+        
+        // 添加过滤条件
+        function addCondition() {
+            const container = document.getElementById('filterConditions');
+            const newCondition = document.createElement('div');
+            newCondition.className = 'filter-condition';
+            newCondition.innerHTML = `
+                <div class="condition-header">
+                    <span class="condition-logic">AND</span>
+                    <span class="remove-condition" onclick="removeCondition(this)">✕</span>
+                </div>
+                <div class="filter-content">
+                    <div class="filter-item">
+                        <label>字段</label>
+                        <select>
+                            <option value="name">用户名</option>
+                            <option value="email">邮箱</option>
+                            <option value="role">角色</option>
+                            <option value="status">状态</option>
+                            <option value="created_at">创建时间</option>
+                            <option value="last_login">最后登录</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>条件</label>
+                        <select>
+                            <option value="equals">等于</option>
+                            <option value="contains">包含</option>
+                            <option value="starts_with">开头是</option>
+                            <option value="ends_with">结尾是</option>
+                            <option value="greater_than">大于</option>
+                            <option value="less_than">小于</option>
+                            <option value="between">介于</option>
+                            <option value="in">属于</option>
+                            <option value="not_in">不属于</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>值</label>
+                        <input type="text" placeholder="请输入筛选值">
+                    </div>
+                </div>
+            `;
+            container.appendChild(newCondition);
+            filterConditions++;
+        }
+        
+        // 移除过滤条件
+        function removeCondition(element) {
+            if (filterConditions > 1) {
+                element.closest('.filter-condition').remove();
+                filterConditions--;
+            } else {
+                alert('至少需要保留一个过滤条件');
+            }
+        }
+        
+        // 清空过滤器
+        function clearFilters() {
+            const container = document.getElementById('filterConditions');
+            container.innerHTML = `
+                <div class="filter-condition">
+                    <div class="condition-header">
+                        <span class="condition-logic">AND</span>
+                        <span class="remove-condition" onclick="removeCondition(this)">✕</span>
+                    </div>
+                    <div class="filter-content">
+                        <div class="filter-item">
+                            <label>字段</label>
+                            <select>
+                                <option value="name">用户名</option>
+                                <option value="email">邮箱</option>
+                                <option value="role">角色</option>
+                                <option value="status">状态</option>
+                                <option value="created_at">创建时间</option>
+                                <option value="last_login">最后登录</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>条件</label>
+                            <select>
+                                <option value="equals">等于</option>
+                                <option value="contains">包含</option>
+                                <option value="starts_with">开头是</option>
+                                <option value="ends_with">结尾是</option>
+                                <option value="greater_than">大于</option>
+                                <option value="less_than">小于</option>
+                                <option value="between">介于</option>
+                                <option value="in">属于</option>
+                                <option value="not_in">不属于</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>值</label>
+                            <input type="text" placeholder="请输入筛选值">
+                        </div>
+                    </div>
+                </div>
+            `;
+            filterConditions = 1;
+            
+            // 清除已保存过滤器的选中状态
+            document.querySelectorAll('.filter-tag').forEach(tag => {
+                tag.classList.remove('active');
+            });
+        }
+        
+        // 应用过滤器
+        function applyFilters() {
+            alert('过滤器已应用！\n这里会根据设置的条件过滤用户列表。');
+        }
+        
+        // 保存过滤器
+        function saveFilter() {
+            document.getElementById('saveFilterModal').classList.add('active');
+        }
+        
+        // 关闭保存过滤器模态框
+        function closeSaveFilterModal() {
+            document.getElementById('saveFilterModal').classList.remove('active');
+            document.getElementById('filterNameInput').value = '';
+        }
+        
+        // 确认保存过滤器
+        function confirmSaveFilter() {
+            const name = document.getElementById('filterNameInput').value;
+            if (!name.trim()) {
+                alert('请输入过滤器名称');
+                return;
+            }
+            
+            // 创建新的过滤器标签
+            const tagsContainer = document.getElementById('savedFilters');
+            const newTag = document.createElement('div');
+            newTag.className = 'filter-tag';
+            newTag.onclick = () => loadFilter(name.toLowerCase().replace(/\s+/g, '-'));
+            newTag.innerHTML = `
+                ${name}
+                <span class="remove" onclick="event.stopPropagation(); deleteFilter('${name.toLowerCase().replace(/\s+/g, '-')}')">×</span>
+            `;
+            tagsContainer.appendChild(newTag);
+            
+            alert(`过滤器 "${name}" 已保存！`);
+            closeSaveFilterModal();
+        }
+        
+        // 加载已保存的过滤器
+        function loadFilter(filterName) {
+            // 清除其他过滤器的选中状态
+            document.querySelectorAll('.filter-tag').forEach(tag => {
+                tag.classList.remove('active');
+            });
+            
+            // 激活当前过滤器
+            event.target.classList.add('active');
+            
+            // 根据过滤器名称加载相应的条件
+            const presetFilters = {
+                'active-users': {
+                    field: 'status',
+                    condition: 'equals',
+                    value: '启用'
+                },
+                'admin-roles': {
+                    field: 'role',
+                    condition: 'contains',
+                    value: '管理员'
+                },
+                'recent-users': {
+                    field: 'created_at',
+                    condition: 'greater_than',
+                    value: '2024-01-01'
+                }
+            };
+            
+            const filter = presetFilters[filterName];
+            if (filter) {
+                // 应用预设过滤器逻辑
+                alert(`已加载过滤器: ${filterName}\n字段: ${filter.field}\n条件: ${filter.condition}\n值: ${filter.value}`);
+            }
+        }
+        
+        // 删除已保存的过滤器
+        function deleteFilter(filterName) {
+            if (confirm('确定要删除这个过滤器吗？')) {
+                event.target.closest('.filter-tag').remove();
+                alert(`过滤器已删除: ${filterName}`);
+            }
+        }
+        
+        // 显示自定义排序模态框
+        function showSortModal() {
+            alert('自定义排序功能\n\n支持的排序字段:\n- 用户名\n- 邮箱\n- 角色\n- 状态\n- 创建时间\n- 最后登录时间\n\n可以设置多级排序和升序/降序。');
+        }
+        
+        // 点击模态框背景关闭
+        document.getElementById('saveFilterModal').onclick = function(e) {
+            if (e.target === this) {
+                closeSaveFilterModal();
+            }
+        };
+    </script>
+</body>
+</html>

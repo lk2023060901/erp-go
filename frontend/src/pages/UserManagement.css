@@ -1,0 +1,294 @@
+/* 用户模态框样式 - 匹配 style1-simple-card.html 设计 */
+
+.user-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.user-modal {
+  background: white;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.user-modal-header {
+  padding: 20px 24px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.user-modal-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #000;
+}
+
+.user-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+  padding: 4px;
+  line-height: 1;
+}
+
+.user-close-btn:hover {
+  color: #666;
+}
+
+.user-modal-body {
+  padding: 0 24px 24px 24px;
+}
+
+.user-form-group {
+  margin-bottom: 20px;
+}
+
+.user-form-group .ant-form-item {
+  margin-bottom: 0;
+}
+
+.user-form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 400;
+}
+
+.user-required {
+  color: #ff4d4f;
+  margin-left: 2px;
+}
+
+.user-form-input {
+  width: 100%;
+  padding: 12px 16px !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  background-color: #fff !important;
+  transition: border-color 0.3s !important;
+}
+
+.user-form-input:focus {
+  outline: none !important;
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.user-form-input::placeholder {
+  color: #bfbfbf !important;
+}
+
+.user-password-wrapper {
+  position: relative;
+}
+
+.user-password-icons {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.user-password-icon {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.3s;
+}
+
+.user-password-icon:hover {
+  color: #1890ff;
+}
+
+.user-form-textarea {
+  width: 100%;
+  padding: 12px 16px !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  background-color: #fff !important;
+  resize: vertical !important;
+  min-height: 80px !important;
+  font-family: inherit !important;
+  transition: border-color 0.3s !important;
+}
+
+.user-form-textarea:focus {
+  outline: none !important;
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.user-modal-footer {
+  padding: 16px 24px 24px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.user-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid #d9d9d9;
+  background: white;
+}
+
+.user-btn-default {
+  color: #333;
+}
+
+.user-btn-default:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.user-btn-primary {
+  background-color: #000;
+  color: white;
+  border-color: #000;
+}
+
+.user-btn-primary:hover {
+  background-color: #333;
+  border-color: #333;
+}
+
+/* 密码生成模态框 */
+.user-password-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.user-password-modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.user-password-modal-header {
+  padding: 20px 24px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.user-password-modal-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+}
+
+.user-password-modal-body {
+  padding: 0 24px 24px 24px;
+}
+
+.user-password-tip {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.user-password-tip p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.user-generated-password {
+  background-color: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.user-password-text {
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  color: #000;
+  margin-bottom: 12px;
+  word-break: break-all;
+  font-weight: 500;
+}
+
+.user-copy-btn {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.user-copy-btn:hover {
+  background-color: #40a9ff;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .user-modal {
+    margin: 0 16px;
+  }
+  
+  .user-modal-footer {
+    flex-direction: column;
+  }
+  
+  .user-btn {
+    width: 100%;
+  }
+}
+
+/* 覆盖 Ant Design 的样式 */
+.user-modal .ant-form-item-explain-error {
+  font-size: 12px;
+  color: #ff4d4f;
+  margin-top: 4px;
+}
+
+.user-modal .ant-form-item-has-error .user-form-input {
+  border-color: #ff4d4f !important;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+}

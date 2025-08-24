@@ -1,0 +1,364 @@
+syntax = "proto3";
+
+package api.role.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/your-org/erp-system/api/role/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.role.v1";
+option java_outer_classname = "RoleProtoV1";
+
+// 角色管理服务
+service RoleService {
+  // 创建角色
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse) {
+    option (google.api.http) = {
+      post: "/v1/roles"
+      body: "*"
+    };
+  }
+
+  // 获取角色列表
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles"
+    };
+  }
+
+  // 获取角色详情
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles/{id}"
+    };
+  }
+
+  // 更新角色
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
+    option (google.api.http) = {
+      put: "/v1/roles/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除角色
+  rpc DeleteRole(DeleteRoleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/roles/{id}"
+    };
+  }
+
+  // 批量删除角色
+  rpc BatchDeleteRoles(BatchDeleteRolesRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/roles/batch-delete"
+      body: "*"
+    };
+  }
+
+  // 启用/禁用角色
+  rpc ToggleRoleStatus(ToggleRoleStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/roles/{id}/toggle-status"
+      body: "*"
+    };
+  }
+
+  // 分配角色权限
+  rpc AssignRolePermissions(AssignRolePermissionsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/roles/{role_id}/permissions"
+      body: "*"
+    };
+  }
+
+  // 获取角色权限
+  rpc GetRolePermissions(GetRolePermissionsRequest) returns (GetRolePermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles/{role_id}/permissions"
+    };
+  }
+
+  // 移除角色权限
+  rpc RemoveRolePermission(RemoveRolePermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/roles/{role_id}/permissions/{permission_id}"
+    };
+  }
+
+  // 获取角色用户
+  rpc GetRoleUsers(GetRoleUsersRequest) returns (GetRoleUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles/{role_id}/users"
+    };
+  }
+
+  // 复制角色
+  rpc CopyRole(CopyRoleRequest) returns (CopyRoleResponse) {
+    option (google.api.http) = {
+      post: "/v1/roles/{id}/copy"
+      body: "*"
+    };
+  }
+
+  // 角色统计信息
+  rpc GetRoleStats(google.protobuf.Empty) returns (GetRoleStatsResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles/stats"
+    };
+  }
+
+  // 获取角色选项（用于下拉框）
+  rpc GetRoleOptions(GetRoleOptionsRequest) returns (GetRoleOptionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles/options"
+    };
+  }
+}
+
+// 创建角色请求
+message CreateRoleRequest {
+  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 100}];
+  string code = 2 [(validate.rules).string = {min_len: 1, max_len: 50, pattern: "^[A-Z_]+$"}];
+  string description = 3 [(validate.rules).string.max_len = 500];
+  bool is_enabled = 4;
+  int32 sort_order = 5 [(validate.rules).int32.gte = 0];
+  repeated int64 permission_ids = 6; // 权限ID列表
+}
+
+// 创建角色响应
+message CreateRoleResponse {
+  Role role = 1;
+}
+
+// 获取角色列表请求
+message ListRolesRequest {
+  int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 3; // 搜索关键词
+  bool is_system_role = 4; // 是否系统角色筛选
+  bool is_enabled = 5; // 是否启用筛选
+  string sort_by = 6; // 排序字段
+  string sort_order = 7 [(validate.rules).string = {in: ["asc", "desc"]}]; // 排序方向
+}
+
+// 获取角色列表响应
+message ListRolesResponse {
+  repeated Role roles = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 获取角色详情请求
+message GetRoleRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 获取角色详情响应
+message GetRoleResponse {
+  Role role = 1;
+  repeated Permission permissions = 2; // 角色拥有的权限
+  int32 user_count = 3; // 使用此角色的用户数量
+}
+
+// 更新角色请求
+message UpdateRoleRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  string name = 2 [(validate.rules).string.max_len = 100];
+  string code = 3 [(validate.rules).string = {max_len: 50, pattern: "^[A-Z_]+$"}];
+  string description = 4 [(validate.rules).string.max_len = 500];
+  bool is_enabled = 5;
+  int32 sort_order = 6 [(validate.rules).int32.gte = 0];
+}
+
+// 更新角色响应
+message UpdateRoleResponse {
+  Role role = 1;
+}
+
+// 删除角色请求
+message DeleteRoleRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+// 批量删除角色请求
+message BatchDeleteRolesRequest {
+  repeated int64 ids = 1 [(validate.rules).repeated.min_items = 1];
+}
+
+// 切换角色状态请求
+message ToggleRoleStatusRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  bool is_enabled = 2;
+}
+
+// 分配角色权限请求
+message AssignRolePermissionsRequest {
+  int64 role_id = 1 [(validate.rules).int64.gt = 0];
+  repeated int64 permission_ids = 2 [(validate.rules).repeated.min_items = 0]; // 允许为空（清空权限）
+}
+
+// 获取角色权限请求
+message GetRolePermissionsRequest {
+  int64 role_id = 1 [(validate.rules).int64.gt = 0];
+  string permission_type = 2; // 权限类型筛选：menu, button, api
+}
+
+// 获取角色权限响应
+message GetRolePermissionsResponse {
+  repeated RolePermission role_permissions = 1;
+  repeated Permission available_permissions = 2; // 可分配的权限
+}
+
+// 移除角色权限请求
+message RemoveRolePermissionRequest {
+  int64 role_id = 1 [(validate.rules).int64.gt = 0];
+  int64 permission_id = 2 [(validate.rules).int64.gt = 0];
+}
+
+// 获取角色用户请求
+message GetRoleUsersRequest {
+  int64 role_id = 1 [(validate.rules).int64.gt = 0];
+  int32 page = 2 [(validate.rules).int32 = {gte: 1}];
+  int32 page_size = 3 [(validate.rules).int32 = {gte: 1, lte: 100}];
+  string keyword = 4; // 搜索关键词
+}
+
+// 获取角色用户响应
+message GetRoleUsersResponse {
+  repeated RoleUser role_users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// 复制角色请求
+message CopyRoleRequest {
+  int64 id = 1 [(validate.rules).int64.gt = 0];
+  string name = 2 [(validate.rules).string = {min_len: 1, max_len: 100}];
+  string code = 3 [(validate.rules).string = {min_len: 1, max_len: 50, pattern: "^[A-Z_]+$"}];
+  string description = 4 [(validate.rules).string.max_len = 500];
+  bool copy_permissions = 5; // 是否复制权限
+}
+
+// 复制角色响应
+message CopyRoleResponse {
+  Role role = 1;
+}
+
+// 角色统计响应
+message GetRoleStatsResponse {
+  int32 total_roles = 1; // 总角色数
+  int32 system_roles = 2; // 系统角色数
+  int32 custom_roles = 3; // 自定义角色数
+  int32 enabled_roles = 4; // 启用角色数
+  int32 disabled_roles = 5; // 禁用角色数
+  repeated RoleUserStat role_stats = 6; // 各角色用户统计
+}
+
+// 获取角色选项请求
+message GetRoleOptionsRequest {
+  bool only_enabled = 1; // 只获取启用的角色
+  bool exclude_system = 2; // 排除系统角色
+}
+
+// 获取角色选项响应
+message GetRoleOptionsResponse {
+  repeated RoleOption role_options = 1;
+}
+
+// 角色信息
+message Role {
+  int64 id = 1;
+  string name = 2;
+  string code = 3;
+  string description = 4;
+  bool is_system_role = 5;
+  bool is_enabled = 6;
+  int32 sort_order = 7;
+  int64 created_by = 8;
+  int64 updated_by = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+// 权限信息
+message Permission {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string code = 4;
+  string resource = 5;
+  string action = 6;
+  string module = 7;
+  string description = 8;
+  bool is_menu = 9;
+  bool is_button = 10;
+  bool is_api = 11;
+  string menu_url = 12;
+  string menu_icon = 13;
+  string api_path = 14;
+  string api_method = 15;
+  int32 level = 16;
+  int32 sort_order = 17;
+  bool is_enabled = 18;
+  string created_at = 19;
+  string updated_at = 20;
+}
+
+// 角色权限关联
+message RolePermission {
+  int64 id = 1;
+  int64 role_id = 2;
+  int64 permission_id = 3;
+  bool is_granted = 4;
+  int64 granted_by = 5;
+  string granted_at = 6;
+  string created_at = 7;
+  Permission permission = 8; // 权限详情
+}
+
+// 角色用户
+message RoleUser {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 role_id = 3;
+  string expires_at = 4;
+  bool is_active = 5;
+  int64 granted_by = 6;
+  string granted_at = 7;
+  string created_at = 8;
+  User user = 9; // 用户详情
+}
+
+// 用户信息（简化版）
+message User {
+  int64 id = 1;
+  string username = 2;
+  string email = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string avatar_url = 6;
+  bool is_enabled = 7;
+  string created_at = 8;
+}
+
+// 角色用户统计
+message RoleUserStat {
+  int64 role_id = 1;
+  string role_name = 2;
+  string role_code = 3;
+  int32 user_count = 4;
+}
+
+// 角色选项
+message RoleOption {
+  int64 id = 1;
+  string name = 2;
+  string code = 3;
+  string description = 4;
+  bool is_system_role = 5;
+}

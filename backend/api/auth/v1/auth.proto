@@ -1,0 +1,212 @@
+syntax = "proto3";
+
+package api.auth.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/your-org/erp-system/api/auth/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.auth.v1";
+option java_outer_classname = "AuthProtoV1";
+
+// 认证服务
+service AuthService {
+  // 用户登录
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  // 用户登出
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/auth/logout"
+      body: "*"
+    };
+  }
+
+  // 刷新Token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/refresh"
+      body: "*"
+    };
+  }
+
+  // 获取当前用户信息
+  rpc GetProfile(google.protobuf.Empty) returns (ProfileResponse) {
+    option (google.api.http) = {
+      get: "/v1/auth/profile"
+    };
+  }
+
+  // 修改密码
+  rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/v1/auth/password"
+      body: "*"
+    };
+  }
+
+  // 重置密码
+  rpc ResetPassword(ResetPasswordRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/auth/reset-password"
+      body: "*"
+    };
+  }
+
+  // 发送验证码
+  rpc SendVerificationCode(SendVerificationCodeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/auth/send-code"
+      body: "*"
+    };
+  }
+
+  // 验证双重认证
+  rpc VerifyTwoFactor(VerifyTwoFactorRequest) returns (VerifyTwoFactorResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/verify-2fa"
+      body: "*"
+    };
+  }
+
+  // 启用双重认证
+  rpc EnableTwoFactor(EnableTwoFactorRequest) returns (EnableTwoFactorResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/enable-2fa"
+      body: "*"
+    };
+  }
+
+  // 禁用双重认证
+  rpc DisableTwoFactor(DisableTwoFactorRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/auth/disable-2fa"
+      body: "*"
+    };
+  }
+}
+
+// 登录请求
+message LoginRequest {
+  string username = 1 [(validate.rules).string = {min_len: 1, max_len: 50}]; // 用户名或邮箱
+  string password = 2 [(validate.rules).string = {min_len: 1, max_len: 100}]; // 密码
+  string captcha = 3; // 验证码
+  string two_factor_code = 4; // 双重认证码
+  bool remember_me = 5; // 记住我
+}
+
+// 登录响应
+message LoginResponse {
+  string access_token = 1; // 访问令牌
+  string refresh_token = 2; // 刷新令牌
+  int64 expires_in = 3; // 过期时间(秒)
+  UserInfo user = 4; // 用户信息
+}
+
+// 登出请求
+message LogoutRequest {
+  string refresh_token = 1; // 刷新令牌
+}
+
+// 刷新Token请求
+message RefreshTokenRequest {
+  string refresh_token = 1 [(validate.rules).string.min_len = 1]; // 刷新令牌
+}
+
+// 刷新Token响应
+message RefreshTokenResponse {
+  string access_token = 1; // 新的访问令牌
+  string refresh_token = 2; // 新的刷新令牌
+  int64 expires_in = 3; // 过期时间(秒)
+}
+
+// 用户信息响应
+message ProfileResponse {
+  UserInfo user = 1; // 用户信息
+  repeated string permissions = 2; // 用户权限列表
+  repeated RoleInfo roles = 3; // 用户角色列表
+}
+
+// 修改密码请求
+message ChangePasswordRequest {
+  string old_password = 1 [(validate.rules).string = {min_len: 1, max_len: 100}]; // 旧密码
+  string new_password = 2 [(validate.rules).string = {min_len: 8, max_len: 100}]; // 新密码
+  string confirm_password = 3 [(validate.rules).string = {min_len: 8, max_len: 100}]; // 确认密码
+}
+
+// 重置密码请求
+message ResetPasswordRequest {
+  string email = 1 [(validate.rules).string.email = true]; // 邮箱地址
+  string verification_code = 2; // 验证码
+  string new_password = 3 [(validate.rules).string = {min_len: 8, max_len: 100}]; // 新密码
+}
+
+// 发送验证码请求
+message SendVerificationCodeRequest {
+  string email = 1 [(validate.rules).string.email = true]; // 邮箱地址
+  string type = 2 [(validate.rules).string = {in: ["reset_password", "email_verify"]}]; // 验证码类型
+}
+
+// 验证双重认证请求
+message VerifyTwoFactorRequest {
+  string code = 1 [(validate.rules).string = {min_len: 6, max_len: 6}]; // 6位验证码
+}
+
+// 验证双重认证响应
+message VerifyTwoFactorResponse {
+  bool valid = 1; // 是否有效
+}
+
+// 启用双重认证请求
+message EnableTwoFactorRequest {
+  string code = 1 [(validate.rules).string = {min_len: 6, max_len: 6}]; // 6位验证码
+}
+
+// 启用双重认证响应
+message EnableTwoFactorResponse {
+  string secret_key = 1; // 密钥
+  string qr_code_url = 2; // 二维码URL
+  repeated string backup_codes = 3; // 备份码
+}
+
+// 禁用双重认证请求
+message DisableTwoFactorRequest {
+  string password = 1 [(validate.rules).string.min_len = 1]; // 当前密码
+  string code = 2 [(validate.rules).string = {min_len: 6, max_len: 6}]; // 6位验证码
+}
+
+// 用户信息
+message UserInfo {
+  int64 id = 1; // 用户ID
+  string username = 2; // 用户名
+  string email = 3; // 邮箱
+  string first_name = 4; // 姓
+  string last_name = 5; // 名
+  string phone = 6; // 手机号
+  string gender = 7; // 性别
+  string birth_date = 8; // 出生日期
+  string avatar_url = 9; // 头像URL
+  bool is_enabled = 10; // 是否启用
+  bool phone_verified = 11; // 手机是否验证
+  bool two_factor_enabled = 12; // 双重认证是否启用
+  string last_login_time = 13; // 最后登录时间
+  string last_login_ip = 14; // 最后登录IP
+  string created_at = 15; // 创建时间
+  string updated_at = 16; // 更新时间
+}
+
+// 角色信息
+message RoleInfo {
+  int64 id = 1; // 角色ID
+  string name = 2; // 角色名称
+  string code = 3; // 角色编码
+  string description = 4; // 角色描述
+  bool is_system_role = 5; // 是否系统角色
+}
