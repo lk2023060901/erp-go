@@ -26,10 +26,17 @@ export interface RolesQueryParams {
 // 创建角色请求
 export interface CreateRoleRequest {
   name: string;
-  code: string;
   description?: string;
   is_enabled?: boolean;
   sort_order?: number;
+  
+  // 新增字段
+  home_page?: string;
+  default_route?: string;
+  restrict_to_domain?: string;
+  is_custom?: boolean;
+  desk_access?: boolean;
+  require_two_factor?: boolean;
 }
 
 // 更新角色请求
@@ -38,6 +45,13 @@ export interface UpdateRoleRequest {
   description?: string;
   is_enabled?: boolean;
   sort_order?: number;
+  
+  // 新增字段
+  home_page?: string;
+  default_route?: string;
+  restrict_to_domain?: string;
+  desk_access?: boolean;
+  require_two_factor?: boolean;
 }
 
 /**
@@ -64,11 +78,29 @@ export async function getRolesList(params?: RolesQueryParams): Promise<RolesList
  */
 export async function getEnabledRoles(): Promise<Role[]> {
   try {
-    const response = await apiClient.get<{ roles: Role[] }>('/roles/enabled');
-    return response.roles;
+    console.log('🔍 Making API call to /roles/enabled');
+    const response = await apiClient.get<Role[] | { roles: Role[] }>('/roles/enabled');
+    console.log('✅ API call successful, response:', response);
+    
+    // 处理两种可能的响应格式
+    let roles: Role[] = [];
+    if (Array.isArray(response)) {
+      // 直接返回数组格式
+      roles = response;
+      console.log('🔍 Response is array format, length:', roles.length);
+    } else if (response && response.roles && Array.isArray(response.roles)) {
+      // 包装在 roles 属性中的格式
+      roles = response.roles;
+      console.log('🔍 Response is object format with roles property, length:', roles.length);
+    } else {
+      console.warn('⚠️ Unexpected response format:', response);
+    }
+    
+    console.log('📋 Final roles:', roles);
+    return roles;
   } catch (error) {
-    console.error('Get enabled roles failed:', error);
-    throw new Error('获取启用角色失败');
+    console.error('❌ Get enabled roles failed:', error);
+    throw error;
   }
 }
 
@@ -77,11 +109,26 @@ export async function getEnabledRoles(): Promise<Role[]> {
  */
 export async function getRoleById(id: number): Promise<Role> {
   try {
-    const response = await apiClient.get<{ role: Role }>(`/roles/${id}`);
-    return response.role;
-  } catch (error) {
-    console.error('Get role failed:', error);
-    throw new Error('获取角色详情失败');
+    console.log('getRoleById called with id:', id);
+    const response = await apiClient.get<Role>(`/roles/${id}`);
+    console.log('getRoleById raw response:', response);
+    
+    // 如果响应被包装在额外的对象中，需要解包
+    const role = (response as any)?.role || response;
+    console.log('getRoleById processed role:', role);
+    
+    if (!role || !role.name) {
+      console.error('Invalid role data structure:', role);
+      throw new Error('服务器返回的角色数据格式不正确');
+    }
+    
+    return role;
+  } catch (error: any) {
+    console.error('Get role failed - Full error:', error);
+    console.error('Error response:', error.response);
+    console.error('Error status:', error.response?.status);
+    console.error('Error data:', error.response?.data);
+    throw new Error(`获取角色详情失败: ${error.response?.data?.error?.message || error.message}`);
   }
 }
 
@@ -167,11 +214,10 @@ export async function batchDeleteRoles(ids: number[]): Promise<void> {
 /**
  * 复制角色
  */
-export async function copyRole(id: number, newName: string, newCode: string): Promise<Role> {
+export async function copyRole(id: number, newName: string): Promise<Role> {
   try {
     const response = await apiClient.post<{ role: Role }>(`/roles/${id}/copy`, {
       name: newName,
-      code: newCode,
     });
     return response.role;
   } catch (error) {

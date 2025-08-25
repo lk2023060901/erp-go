@@ -9,7 +9,11 @@ import type {
   PermissionCheckOptions, 
   PermissionResult,
   MenuItem,
-  JWTClaims
+  JWTClaims,
+  EnhancedUserPermission,
+  FieldPermissionResponse,
+  DocType,
+  PermissionRule
 } from '../types/auth';
 
 // 超级管理员角色代码
@@ -20,35 +24,35 @@ export const ADMIN_ROLE = 'ADMIN';
  * 检查用户是否为超级管理员
  */
 export function isSuperAdmin(roles: string[] | Role[]): boolean {
-  const roleCodes = Array.isArray(roles) && typeof roles[0] === 'string' 
+  const roleNames = Array.isArray(roles) && typeof roles[0] === 'string' 
     ? roles as string[]
-    : (roles as Role[]).map(role => role.code);
+    : (roles as Role[]).map(role => role.name);
   
-  return roleCodes.includes(SUPER_ADMIN_ROLE);
+  return roleNames.includes(SUPER_ADMIN_ROLE);
 }
 
 /**
  * 检查用户是否为管理员
  */
 export function isAdmin(roles: string[] | Role[]): boolean {
-  const roleCodes = Array.isArray(roles) && typeof roles[0] === 'string' 
+  const roleNames = Array.isArray(roles) && typeof roles[0] === 'string' 
     ? roles as string[]
-    : (roles as Role[]).map(role => role.code);
+    : (roles as Role[]).map(role => role.name);
   
-  return roleCodes.some(code => [SUPER_ADMIN_ROLE, ADMIN_ROLE].includes(code));
+  return roleNames.some(name => [SUPER_ADMIN_ROLE, ADMIN_ROLE].includes(name));
 }
 
 /**
  * 检查用户是否拥有指定角色
  */
 export function hasRole(userRoles: string[] | Role[], targetRole: string | string[]): boolean {
-  const roleCodes = Array.isArray(userRoles) && typeof userRoles[0] === 'string' 
+  const roleNames = Array.isArray(userRoles) && typeof userRoles[0] === 'string' 
     ? userRoles as string[]
-    : (userRoles as Role[]).map(role => role.code);
+    : (userRoles as Role[]).map(role => role.name);
   
   const targetRoles = Array.isArray(targetRole) ? targetRole : [targetRole];
   
-  return targetRoles.some(role => roleCodes.includes(role));
+  return targetRoles.some(role => roleNames.includes(role));
 }
 
 /**
@@ -460,5 +464,223 @@ export class PermissionCache {
         this.cache.delete(key);
       }
     }
+  }
+}
+
+// ========== ERP权限检查函数 ==========
+
+/**
+ * 检查用户在特定DocType上是否有特定权限
+ */
+export function hasErpPermission(
+  userPermissions: EnhancedUserPermission[], 
+  doc_type: string, 
+  permission: keyof EnhancedUserPermission['effective_permissions']
+): boolean {
+  const userPerm = userPermissions.find(p => p.doc_type === doc_type);
+  return userPerm?.effective_permissions[permission] || false;
+}
+
+/**
+ * 检查用户是否有多个权限中的任意一个
+ */
+export function hasAnyErpPermission(
+  userPermissions: EnhancedUserPermission[], 
+  doc_type: string, 
+  permissions: Array<keyof EnhancedUserPermission['effective_permissions']>
+): boolean {
+  return permissions.some(permission => 
+    hasErpPermission(userPermissions, doc_type, permission)
+  );
+}
+
+/**
+ * 检查用户是否有所有指定权限
+ */
+export function hasAllErpPermissions(
+  userPermissions: EnhancedUserPermission[], 
+  doc_type: string, 
+  permissions: Array<keyof EnhancedUserPermission['effective_permissions']>
+): boolean {
+  return permissions.every(permission => 
+    hasErpPermission(userPermissions, doc_type, permission)
+  );
+}
+
+/**
+ * 获取用户在DocType上的所有权限
+ */
+export function getUserDocTypePermissions(
+  userPermissions: EnhancedUserPermission[], 
+  doc_type: string
+): Partial<EnhancedUserPermission['effective_permissions']> {
+  const userPerm = userPermissions.find(p => p.doc_type === doc_type);
+  return userPerm?.effective_permissions || {};
+}
+
+/**
+ * 检查用户是否可以访问特定字段
+ */
+export function canAccessField(
+  fieldPermissions: FieldPermissionResponse,
+  field_name: string,
+  permission_type: 'read' | 'write'
+): boolean {
+  const field = fieldPermissions.accessible_fields.find(f => f.field_name === field_name);
+  return permission_type === 'read' ? field?.can_read || false : field?.can_write || false;
+}
+
+/**
+ * 获取用户可读取的字段列表
+ */
+export function getReadableFields(fieldPermissions: FieldPermissionResponse): string[] {
+  return fieldPermissions.accessible_fields
+    .filter(field => field.can_read)
+    .map(field => field.field_name);
+}
+
+/**
+ * 获取用户可编辑的字段列表
+ */
+export function getWritableFields(fieldPermissions: FieldPermissionResponse): string[] {
+  return fieldPermissions.accessible_fields
+    .filter(field => field.can_write)
+    .map(field => field.field_name);
+}
+
+/**
+ * 检查用户是否可以执行特定操作
+ */
+export function canPerformAction(
+  userPermissions: EnhancedUserPermission[], 
+  doc_type: string,
+  action: 'create' | 'read' | 'update' | 'delete' | 'submit' | 'cancel' | 'amend'
+): boolean {
+  const actionMap: Record<string, keyof EnhancedUserPermission['effective_permissions']> = {
+    create: 'create',
+    read: 'read', 
+    update: 'write',
+    delete: 'delete',
+    submit: 'submit',
+    cancel: 'cancel',
+    amend: 'amend'
+  };
+
+  const permission = actionMap[action];
+  return permission ? hasErpPermission(userPermissions, doc_type, permission) : false;
+}
+
+/**
+ * 获取所有ERP权限类型
+ */
+export function getErpPermissionTypes(): Array<{ 
+  key: keyof EnhancedUserPermission['effective_permissions']; 
+  label: string; 
+  color?: string;
+  description?: string;
+}> {
+  return [
+    { key: 'read', label: '查看', color: 'blue', description: '查看文档内容' },
+    { key: 'write', label: '修改', color: 'green', description: '修改文档内容' },
+    { key: 'create', label: '创建', color: 'cyan', description: '创建新文档' },
+    { key: 'delete', label: '删除', color: 'red', description: '删除文档' },
+    { key: 'submit', label: '提交', color: 'purple', description: '提交文档进入工作流' },
+    { key: 'cancel', label: '取消', color: 'orange', description: '取消已提交的文档' },
+    { key: 'amend', label: '修正', color: 'magenta', description: '修正取消的文档' },
+    { key: 'print', label: '打印', color: 'geekblue', description: '打印文档' },
+    { key: 'email', label: '邮件', color: 'volcano', description: '通过邮件发送文档' },
+    { key: 'import', label: '导入', color: 'gold', description: '导入文档数据' },
+    { key: 'export', label: '导出', color: 'lime', description: '导出文档数据' },
+    { key: 'share', label: '分享', color: 'cyan', description: '分享文档给其他用户' },
+    { key: 'report', label: '报表', color: 'purple', description: '查看相关报表' }
+  ];
+}
+
+/**
+ * ERP权限助手类
+ */
+export class ErpPermissionHelper {
+  /**
+   * 创建权限检查器
+   */
+  static createChecker(userPermissions: EnhancedUserPermission[]) {
+    return {
+      // 检查单个权限
+      hasPermission: (doc_type: string, permission: keyof EnhancedUserPermission['effective_permissions']) =>
+        hasErpPermission(userPermissions, doc_type, permission),
+
+      // 检查任意权限
+      hasAnyPermission: (doc_type: string, permissions: Array<keyof EnhancedUserPermission['effective_permissions']>) =>
+        hasAnyErpPermission(userPermissions, doc_type, permissions),
+
+      // 检查所有权限
+      hasAllPermissions: (doc_type: string, permissions: Array<keyof EnhancedUserPermission['effective_permissions']>) =>
+        hasAllErpPermissions(userPermissions, doc_type, permissions),
+
+      // 获取DocType权限
+      getDocTypePermissions: (doc_type: string) =>
+        getUserDocTypePermissions(userPermissions, doc_type),
+
+      // 检查是否可以执行操作
+      canPerformAction: (doc_type: string, action: 'create' | 'read' | 'update' | 'delete' | 'submit' | 'cancel' | 'amend') =>
+        canPerformAction(userPermissions, doc_type, action),
+
+      // 获取用户有权限的DocType列表
+      getAccessibleDocTypes: () =>
+        [...new Set(userPermissions.map(p => p.doc_type))],
+
+      // 检查是否有任何读权限
+      canRead: (doc_type: string) => hasErpPermission(userPermissions, doc_type, 'read'),
+      canWrite: (doc_type: string) => hasErpPermission(userPermissions, doc_type, 'write'),
+      canCreate: (doc_type: string) => hasErpPermission(userPermissions, doc_type, 'create'),
+      canDelete: (doc_type: string) => hasErpPermission(userPermissions, doc_type, 'delete')
+    };
+  }
+
+  /**
+   * 生成权限矩阵（用于权限管理界面）
+   */
+  static generatePermissionMatrix(
+    docTypes: DocType[],
+    roles: Role[],
+    permissionRules: PermissionRule[]
+  ): Array<{
+    docType: DocType;
+    permissions: Array<{
+      role: Role;
+      rules: Partial<EnhancedUserPermission['effective_permissions']>;
+    }>;
+  }> {
+    return docTypes.map(docType => ({
+      docType,
+      permissions: roles.map(role => {
+        const rules = permissionRules.filter(
+          rule => rule.document_type === docType.name && rule.role_id === role.id
+        );
+
+        // 合并同一角色的多个权限规则
+        const mergedRules: Partial<EnhancedUserPermission['effective_permissions']> = {};
+        rules.forEach(rule => {
+          mergedRules.read = mergedRules.read || rule.read;
+          mergedRules.write = mergedRules.write || rule.write;
+          mergedRules.create = mergedRules.create || rule.create;
+          mergedRules.delete = mergedRules.delete || rule.delete;
+          mergedRules.submit = mergedRules.submit || rule.submit;
+          mergedRules.cancel = mergedRules.cancel || rule.cancel;
+          mergedRules.amend = mergedRules.amend || rule.amend;
+          mergedRules.print = mergedRules.print || rule.print;
+          mergedRules.email = mergedRules.email || rule.email;
+          mergedRules.import = mergedRules.import || rule.import;
+          mergedRules.export = mergedRules.export || rule.export;
+          mergedRules.share = mergedRules.share || rule.share;
+          mergedRules.report = mergedRules.report || rule.report;
+        });
+
+        return {
+          role,
+          rules: mergedRules
+        };
+      })
+    }));
   }
 }

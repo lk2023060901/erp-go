@@ -187,7 +187,7 @@ export function AuthDebugger({
         <>
           <div><strong>Roles:</strong></div>
           {roles.map(role => (
-            <div key={role.id}>- {role.name} ({role.code})</div>
+            <div key={role.id}>- {role.name}</div>
           ))}
         </>
       )}

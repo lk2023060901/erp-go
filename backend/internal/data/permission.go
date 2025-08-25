@@ -212,19 +212,17 @@ func (r *permissionRepo) ListDocTypes(ctx context.Context, module string) ([]*bi
 func (r *permissionRepo) CreatePermissionRule(ctx context.Context, rule *biz.PermissionRule) (*biz.PermissionRule, error) {
 	var id int64
 	query := `
-		INSERT INTO permission_rules (role, document_type, permission_level, read, write, [create],
-		                            [delete], submit, cancel, amend, report, export, import,
-		                            set_user_permissions, if_owner, match, select_condition,
-		                            delete_condition, amend_condition, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+		INSERT INTO permission_rules (role_id, doc_type, permission_level, can_read, can_write, can_create,
+		                            can_delete, can_submit, can_cancel, can_amend, can_report, can_export, 
+		                            can_import, can_share, can_print, can_email, only_if_creator, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
 		RETURNING id`
 
 	err := r.data.db.QueryRowContext(ctx, query,
 		rule.RoleID, rule.DocType, rule.PermissionLevel, rule.CanRead, rule.CanWrite,
 		rule.CanCreate, rule.CanDelete, rule.CanSubmit, rule.CanCancel, rule.CanAmend,
-		rule.CanReport, rule.CanExport, rule.CanImport, false,
-		rule.OnlyIfCreator, "", "", "",
-		"", rule.CreatedAt, rule.UpdatedAt,
+		rule.CanReport, rule.CanExport, rule.CanImport, rule.CanShare, rule.CanPrint,
+		rule.CanEmail, rule.OnlyIfCreator, rule.CreatedAt, rule.UpdatedAt,
 	).Scan(&id)
 
 	if err != nil {
@@ -238,29 +236,20 @@ func (r *permissionRepo) CreatePermissionRule(ctx context.Context, rule *biz.Per
 
 func (r *permissionRepo) GetPermissionRule(ctx context.Context, id int64) (*biz.PermissionRule, error) {
 	var rule biz.PermissionRule
-	var selectCondition, deleteCondition, amendCondition sql.NullString
 
 	query := `
-		SELECT id, role, document_type, permission_level, read, write, [create],
-		       [delete], submit, cancel, amend, report, export, import,
-		       set_user_permissions, if_owner, match, select_condition,
-		       delete_condition, amend_condition, created_at, updated_at
+		SELECT id, role_id, doc_type, permission_level, can_read, can_write, can_create,
+		       can_delete, can_submit, can_cancel, can_amend, can_report, can_export, can_import,
+		       can_share, can_print, can_email, only_if_creator, created_at, updated_at
 		FROM permission_rules WHERE id = $1`
 
-	var roleID int64
-	var ifOwner, setUserPermissions bool
-	var match string
 	err := r.data.db.QueryRowContext(ctx, query, id).Scan(
-		&rule.ID, &roleID, &rule.DocType, &rule.PermissionLevel,
+		&rule.ID, &rule.RoleID, &rule.DocType, &rule.PermissionLevel,
 		&rule.CanRead, &rule.CanWrite, &rule.CanCreate, &rule.CanDelete,
 		&rule.CanSubmit, &rule.CanCancel, &rule.CanAmend, &rule.CanReport,
-		&rule.CanExport, &rule.CanImport, &setUserPermissions,
-		&ifOwner, &match, &selectCondition,
-		&deleteCondition, &amendCondition, &rule.CreatedAt, &rule.UpdatedAt,
+		&rule.CanExport, &rule.CanImport, &rule.CanShare, &rule.CanPrint,
+		&rule.CanEmail, &rule.OnlyIfCreator, &rule.CreatedAt, &rule.UpdatedAt,
 	)
-	rule.RoleID = roleID
-	rule.OnlyIfCreator = ifOwner
-	rule.CanSetUserPermissions = setUserPermissions
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -279,20 +268,18 @@ func (r *permissionRepo) GetPermissionRule(ctx context.Context, id int64) (*biz.
 func (r *permissionRepo) UpdatePermissionRule(ctx context.Context, rule *biz.PermissionRule) (*biz.PermissionRule, error) {
 	query := `
 		UPDATE permission_rules 
-		SET role = $1, document_type = $2, permission_level = $3, read = $4, write = $5,
-		    [create] = $6, [delete] = $7, submit = $8, cancel = $9, amend = $10,
-		    report = $11, export = $12, import = $13, set_user_permissions = $14,
-		    if_owner = $15, match = $16, select_condition = $17, delete_condition = $18,
-		    amend_condition = $19, updated_at = $20
-		WHERE id = $21`
+		SET role_id = $1, doc_type = $2, permission_level = $3, can_read = $4, can_write = $5,
+		    can_create = $6, can_delete = $7, can_submit = $8, can_cancel = $9, can_amend = $10,
+		    can_report = $11, can_export = $12, can_import = $13, can_share = $14,
+		    can_print = $15, can_email = $16, only_if_creator = $17, updated_at = $18
+		WHERE id = $19`
 
 	rule.UpdatedAt = time.Now()
 	_, err := r.data.db.ExecContext(ctx, query,
 		rule.RoleID, rule.DocType, rule.PermissionLevel, rule.CanRead, rule.CanWrite,
 		rule.CanCreate, rule.CanDelete, rule.CanSubmit, rule.CanCancel, rule.CanAmend,
-		rule.CanReport, rule.CanExport, rule.CanImport, false,
-		rule.OnlyIfCreator, "", "", "",
-		"", rule.UpdatedAt, rule.ID,
+		rule.CanReport, rule.CanExport, rule.CanImport, rule.CanShare,
+		rule.CanPrint, rule.CanEmail, rule.OnlyIfCreator, rule.UpdatedAt, rule.ID,
 	)
 
 	if err != nil {
@@ -314,13 +301,12 @@ func (r *permissionRepo) DeletePermissionRule(ctx context.Context, id int64) err
 
 func (r *permissionRepo) ListPermissionRules(ctx context.Context, roleID int64, docType string) ([]*biz.PermissionRule, error) {
 	query := `
-		SELECT id, role, document_type, permission_level, read, write, [create],
-		       [delete], submit, cancel, amend, report, export, import,
-		       set_user_permissions, if_owner, match, select_condition,
-		       delete_condition, amend_condition, created_at, updated_at
+		SELECT id, role_id, doc_type, permission_level, can_read, can_write, can_create,
+		       can_delete, can_submit, can_cancel, can_amend, can_report, can_export, can_import,
+		       can_share, can_print, can_email, only_if_creator, created_at, updated_at
 		FROM permission_rules
-		WHERE ($1 = 0 OR role = $1) AND ($2 = '' OR document_type = $2)
-		ORDER BY document_type, permission_level, role`
+		WHERE ($1 = 0 OR role_id = $1) AND ($2 = '' OR doc_type = $2)
+		ORDER BY doc_type, permission_level, role_id`
 
 	rows, err := r.data.db.QueryContext(ctx, query, roleID, docType)
 	if err != nil {
@@ -332,28 +318,17 @@ func (r *permissionRepo) ListPermissionRules(ctx context.Context, roleID int64, 
 	var rules []*biz.PermissionRule
 	for rows.Next() {
 		var rule biz.PermissionRule
-		var selectCondition, deleteCondition, amendCondition sql.NullString
-
-		var roleID int64
-		var ifOwner, setUserPermissions bool
-		var match string
 		err := rows.Scan(
-			&rule.ID, &roleID, &rule.DocType, &rule.PermissionLevel,
+			&rule.ID, &rule.RoleID, &rule.DocType, &rule.PermissionLevel,
 			&rule.CanRead, &rule.CanWrite, &rule.CanCreate, &rule.CanDelete,
 			&rule.CanSubmit, &rule.CanCancel, &rule.CanAmend, &rule.CanReport,
-			&rule.CanExport, &rule.CanImport, &setUserPermissions,
-			&ifOwner, &match, &selectCondition,
-			&deleteCondition, &amendCondition, &rule.CreatedAt, &rule.UpdatedAt,
+			&rule.CanExport, &rule.CanImport, &rule.CanShare, &rule.CanPrint,
+			&rule.CanEmail, &rule.OnlyIfCreator, &rule.CreatedAt, &rule.UpdatedAt,
 		)
 		if err != nil {
 			r.log.Errorf("failed to scan permission rule: %v", err)
 			return nil, err
 		}
-
-		rule.RoleID = roleID
-		rule.OnlyIfCreator = ifOwner
-		rule.CanSetUserPermissions = setUserPermissions
-		// 忽略不存在的字段selectCondition, deleteCondition, amendCondition
 
 		rules = append(rules, &rule)
 	}
@@ -380,19 +355,17 @@ func (r *permissionRepo) BatchCreatePermissionRules(ctx context.Context, rules [
 	defer tx.Rollback()
 
 	query := `
-		INSERT INTO permission_rules (role, document_type, permission_level, read, write, [create],
-		                            [delete], submit, cancel, amend, report, export, import,
-		                            set_user_permissions, if_owner, match, select_condition,
-		                            delete_condition, amend_condition, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`
+		INSERT INTO permission_rules (role_id, doc_type, permission_level, can_read, can_write, can_create,
+		                            can_delete, can_submit, can_cancel, can_amend, can_report, can_export, 
+		                            can_import, can_share, can_print, can_email, only_if_creator, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`
 
 	for _, rule := range rules {
 		_, err = tx.ExecContext(ctx, query,
 			rule.RoleID, rule.DocType, rule.PermissionLevel, rule.CanRead, rule.CanWrite,
 			rule.CanCreate, rule.CanDelete, rule.CanSubmit, rule.CanCancel, rule.CanAmend,
-			rule.CanReport, rule.CanExport, rule.CanImport, false,
-			rule.OnlyIfCreator, "", "", "",
-			"", rule.CreatedAt, rule.UpdatedAt,
+			rule.CanReport, rule.CanExport, rule.CanImport, rule.CanShare, rule.CanPrint,
+			rule.CanEmail, rule.OnlyIfCreator, rule.CreatedAt, rule.UpdatedAt,
 		)
 		if err != nil {
 			r.log.Errorf("failed to batch create permission rule: %v", err)
@@ -858,9 +831,9 @@ func (r *permissionRepo) CheckPermission(ctx context.Context, userID int64, docu
 	case "write":
 		columnCheck = "pr.write"
 	case "create":
-		columnCheck = "pr.[create]"
+		columnCheck = "pr.\"create\""
 	case "delete":
-		columnCheck = "pr.[delete]"
+		columnCheck = "pr.\"delete\""
 	case "submit":
 		columnCheck = "pr.submit"
 	case "cancel":

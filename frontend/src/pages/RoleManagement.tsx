@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   Table,
@@ -23,7 +24,8 @@ import {
   Col,
   Divider,
   Tree,
-  Spin
+  Spin,
+  InputNumber
 } from 'antd';
 import {
   PlusOutlined,
@@ -40,7 +42,7 @@ import {
   // SwapOutlined,
   SafetyCertificateOutlined,
   ExportOutlined,
-  // SettingOutlined
+  SettingOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { MenuProps } from 'antd';
@@ -58,22 +60,26 @@ import {
   copyRole,
   batchDeleteRoles
 } from '../services/roleService';
-import {
-  getPermissionTree,
-  formatPermissionTreeForAntd
-} from '../services/permissionService';
+// TODO: Replace with ERP permission system
+// import {
+//   getPermissionTree,
+//   formatPermissionTreeForAntd
+// } from '../services/permissionService';
 import type { 
   // RolesListResponse, 
   CreateRoleRequest, 
   UpdateRoleRequest 
 } from '../services/roleService';
-import type { PermissionTreeNode } from '../services/permissionService';
+// TODO: Replace with ERP permission system types
+// import type { PermissionTreeNode } from '../services/permissionService';
 import type { Role } from '../types/auth';
 
 const { Search } = Input;
 const { Text } = Typography;
 
 export function RoleManagement() {
+  const navigate = useNavigate();
+  
   // 状态管理
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(false);
@@ -85,13 +91,13 @@ export function RoleManagement() {
 
   // 模态框状态
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
   const [permissionModalVisible, setPermissionModalVisible] = useState(false);
   const [copyModalVisible, setCopyModalVisible] = useState(false);
   
   // 编辑状态
   const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [permissionTree, setPermissionTree] = useState<PermissionTreeNode[]>([]);
+  // TODO: Replace with ERP permission system
+  // const [permissionTree, setPermissionTree] = useState<PermissionTreeNode[]>([]);
   const [checkedPermissions, setCheckedPermissions] = useState<number[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [permissionLoading, setPermissionLoading] = useState(false);
@@ -102,13 +108,13 @@ export function RoleManagement() {
 
   // 表单实例
   const [createForm] = Form.useForm();
-  const [editForm] = Form.useForm();
   const [copyForm] = Form.useForm();
 
   // 初始化数据
   useEffect(() => {
     loadRoles();
-    loadPermissionTree();
+    // TODO: Replace with ERP permission system
+    // loadPermissionTree();
   }, [page, pageSize, searchText, sortField, sortOrder]);
 
   // 加载角色列表
@@ -131,15 +137,16 @@ export function RoleManagement() {
     }
   };
 
+  // TODO: Replace with ERP permission system
   // 加载权限树
-  const loadPermissionTree = async () => {
-    try {
-      const tree = await getPermissionTree();
-      setPermissionTree(tree);
-    } catch (error) {
-      message.error('加载权限树失败');
-    }
-  };
+  // const loadPermissionTree = async () => {
+  //   try {
+  //     const tree = await getPermissionTree();
+  //     setPermissionTree(tree);
+  //   } catch (error) {
+  //     message.error('加载权限树失败');
+  //   }
+  // };
 
   // 搜索处理
   const handleSearch = (value: string) => {
@@ -161,20 +168,6 @@ export function RoleManagement() {
   };
 
   // 编辑角色
-  const handleEditRole = async (values: UpdateRoleRequest) => {
-    if (!editingRole) return;
-    
-    try {
-      await updateRole(editingRole.id, values);
-      message.success('更新角色成功');
-      setEditModalVisible(false);
-      setEditingRole(null);
-      editForm.resetFields();
-      loadRoles();
-    } catch (error) {
-      message.error('更新角色失败');
-    }
-  };
 
   // 删除角色
   const handleDeleteRole = async (role: Role) => {
@@ -200,11 +193,11 @@ export function RoleManagement() {
   };
 
   // 复制角色
-  const handleCopyRole = async (values: { name: string; code: string }) => {
+  const handleCopyRole = async (values: { name: string }) => {
     if (!editingRole) return;
     
     try {
-      await copyRole(editingRole.id, values.name, values.code);
+      await copyRole(editingRole.id, values.name);
       message.success('复制角色成功');
       setCopyModalVisible(false);
       setEditingRole(null);
@@ -230,30 +223,18 @@ export function RoleManagement() {
     }
   };
 
-  // 打开编辑模态框
-  const openEditModal = (role: Role) => {
-    setEditingRole(role);
-    editForm.setFieldsValue({
-      name: role.name,
-      description: role.description,
-      is_enabled: role.is_enabled,
-      sort_order: role.sort_order,
-    });
-    setEditModalVisible(true);
-  };
 
   // 打开复制模态框
   const openCopyModal = (role: Role) => {
     setEditingRole(role);
     copyForm.setFieldsValue({
       name: `${role.name}_副本`,
-      code: `${role.code}_copy`,
     });
     setCopyModalVisible(true);
   };
 
-  // 打开权限分配模态框
-  const openPermissionModal = async (role: Role) => {
+  // 打开传统权限分配模态框（保留向后兼容）
+  const openLegacyPermissionModal = async (role: Role) => {
     try {
       setPermissionLoading(true);
       setEditingRole(role);
@@ -272,7 +253,8 @@ export function RoleManagement() {
         });
         return keys;
       };
-      setExpandedKeys(getAllKeys(permissionTree));
+      // TODO: Replace with ERP permission system
+      // setExpandedKeys(getAllKeys(permissionTree));
     } catch (error) {
       message.error('获取角色权限失败');
     } finally {
@@ -285,7 +267,6 @@ export function RoleManagement() {
     const sortOptions = [
       { key: 'created_at', label: '创建时间', icon: '📅' },
       { key: 'name', label: '角色名称', icon: '👤' },
-      { key: 'code', label: '角色代码', icon: '🏷️' },
       { key: 'user_count', label: '用户数量', icon: '#️⃣' },
       { key: 'is_system_role', label: '角色类型', icon: '⚙️' },
     ];
@@ -306,7 +287,6 @@ export function RoleManagement() {
     const sortOptions = [
       { key: 'created_at', label: '创建时间' },
       { key: 'name', label: '角色名称' },
-      { key: 'code', label: '角色代码' },
       { key: 'user_count', label: '用户数量' },
       { key: 'is_system_role', label: '角色类型' },
     ];
@@ -326,7 +306,6 @@ export function RoleManagement() {
     const sortOptions = [
       { key: 'created_at', label: '创建时间' },
       { key: 'name', label: '角色名称' },
-      { key: 'code', label: '角色代码' },
       { key: 'user_count', label: '用户数量' },
       { key: 'is_system_role', label: '角色类型' },
     ];
@@ -343,9 +322,13 @@ export function RoleManagement() {
       render: (name, record) => (
         <div>
           <div style={{ fontWeight: 500 }}>{name}</div>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            {record.code}
-          </Text>
+          {record.description && (
+            <div>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                {record.description.length > 50 ? `${record.description.substring(0, 50)}...` : record.description}
+              </Text>
+            </div>
+          )}
         </div>
       ),
     },
@@ -353,10 +336,36 @@ export function RoleManagement() {
       title: '类型',
       dataIndex: 'is_system_role',
       key: 'is_system_role',
-      render: (isSystem: boolean) => (
-        <Tag color={isSystem ? 'orange' : 'blue'}>
-          {isSystem ? '系统角色' : '自定义角色'}
-        </Tag>
+      render: (isSystem: boolean, record) => (
+        <div>
+          <Tag color={isSystem ? 'orange' : 'blue'}>
+            {isSystem ? '系统角色' : '自定义角色'}
+          </Tag>
+          {record.is_custom && (
+            <div style={{ marginTop: 4 }}>
+              <Tag color="purple" style={{ fontSize: '11px' }}>自定义</Tag>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: '权限设置',
+      key: 'permissions',
+      render: (_, record) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {record.desk_access && (
+            <Tag color="green" style={{ fontSize: '11px' }}>桌面访问</Tag>
+          )}
+          {record.require_two_factor && (
+            <Tag color="red" style={{ fontSize: '11px' }}>2FA</Tag>
+          )}
+          {record.restrict_to_domain && (
+            <Tooltip title={`域限制: ${record.restrict_to_domain}`}>
+              <Tag color="orange" style={{ fontSize: '11px' }}>域限制</Tag>
+            </Tooltip>
+          )}
+        </div>
       ),
     },
     {
@@ -388,13 +397,19 @@ export function RoleManagement() {
             key: 'edit',
             label: '编辑角色',
             icon: <EditOutlined />,
-            onClick: () => openEditModal(record),
+            onClick: () => navigate(`/roles/edit/${record.id}`),
           },
           {
             key: 'permissions',
-            label: '分配权限',
+            label: '配置权限',
             icon: <SafetyCertificateOutlined />,
-            onClick: () => openPermissionModal(record),
+            onClick: () => navigate(`/roles/${record.id}/permissions`),
+          },
+          {
+            key: 'legacy-permissions',
+            label: '传统权限',
+            icon: <SettingOutlined />,
+            onClick: () => openLegacyPermissionModal(record),
           },
           {
             key: 'copy',
@@ -571,7 +586,7 @@ export function RoleManagement() {
           createForm.resetFields();
         }}
         footer={null}
-        width={500}
+        width={400}
       >
         <Form
           form={createForm}
@@ -587,53 +602,33 @@ export function RoleManagement() {
               { max: 50, message: '角色名称最多50个字符' },
             ]}
           >
-            <Input placeholder="请输入角色名称" />
-          </Form.Item>
-
-          <Form.Item
-            name="code"
-            label="角色代码"
-            rules={[
-              { required: true, message: '请输入角色代码' },
-              { min: 2, message: '角色代码至少2个字符' },
-              { max: 50, message: '角色代码最多50个字符' },
-              { pattern: /^[A-Z][A-Z0-9_]*$/, message: '角色代码必须以大写字母开头，只能包含大写字母、数字和下划线' },
-            ]}
-          >
-            <Input placeholder="请输入角色代码（如：MANAGER）" />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="角色描述"
-            rules={[{ max: 200, message: '描述最多200个字符' }]}
-          >
-            <Input.TextArea 
-              rows={3}
-              placeholder="请输入角色描述"
+            <Input 
+              placeholder="请输入角色名称（如：销售经理、Sales Manager）" 
+              style={{ fontSize: '14px' }}
             />
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="sort_order"
-                label="排序"
-                initialValue={0}
-              >
-                <Input type="number" placeholder="排序值，数字越小越靠前" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="is_enabled" label="状态" valuePropName="checked">
-                <Switch checkedChildren="启用" unCheckedChildren="禁用" defaultChecked />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider />
-
-          <Row justify="end">
+          <div style={{ 
+            marginTop: '24px', 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center' 
+          }}>
+            <Button 
+              type="link" 
+              onClick={() => {
+                const formData = createForm.getFieldsValue();
+                navigate('/roles/create', { 
+                  state: { name: formData.name } 
+                });
+                setCreateModalVisible(false);
+                createForm.resetFields();
+              }}
+              style={{ padding: 0 }}
+            >
+              编辑完整信息
+            </Button>
+            
             <Space>
               <Button onClick={() => {
                 setCreateModalVisible(false);
@@ -645,84 +640,10 @@ export function RoleManagement() {
                 创建
               </Button>
             </Space>
-          </Row>
+          </div>
         </Form>
       </Modal>
 
-      {/* 编辑角色模态框 */}
-      <Modal
-        title="编辑角色"
-        open={editModalVisible}
-        onCancel={() => {
-          setEditModalVisible(false);
-          setEditingRole(null);
-          editForm.resetFields();
-        }}
-        footer={null}
-        width={500}
-      >
-        <Form
-          form={editForm}
-          layout="vertical"
-          onFinish={handleEditRole}
-        >
-          <Form.Item
-            name="name"
-            label="角色名称"
-            rules={[
-              { required: true, message: '请输入角色名称' },
-              { min: 2, message: '角色名称至少2个字符' },
-              { max: 50, message: '角色名称最多50个字符' },
-            ]}
-          >
-            <Input placeholder="请输入角色名称" />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="角色描述"
-            rules={[{ max: 200, message: '描述最多200个字符' }]}
-          >
-            <Input.TextArea 
-              rows={3}
-              placeholder="请输入角色描述"
-            />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="sort_order"
-                label="排序"
-              >
-                <Input type="number" placeholder="排序值，数字越小越靠前" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="is_enabled" label="状态" valuePropName="checked">
-                <Switch checkedChildren="启用" unCheckedChildren="禁用" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider />
-
-          <Row justify="end">
-            <Space>
-              <Button onClick={() => {
-                setEditModalVisible(false);
-                setEditingRole(null);
-                editForm.resetFields();
-              }}>
-                取消
-              </Button>
-              <Button type="primary" htmlType="submit">
-                更新
-              </Button>
-            </Space>
-          </Row>
-        </Form>
-      </Modal>
 
       {/* 权限分配模态框 */}
       <Modal
@@ -743,17 +664,10 @@ export function RoleManagement() {
             <div style={{ marginTop: 16 }}>加载权限数据中...</div>
           </div>
         ) : (
-          <Tree
-            checkable
-            checkedKeys={checkedPermissions}
-            expandedKeys={expandedKeys}
-            onExpand={setExpandedKeys}
-            onCheck={(checkedKeys) => {
-              setCheckedPermissions(checkedKeys as number[]);
-            }}
-            treeData={formatPermissionTreeForAntd(permissionTree, checkedPermissions)}
-            height={400}
-          />
+          <div style={{ textAlign: 'center', padding: '50px', color: '#999' }}>
+            <p>权限分配功能正在开发中</p>
+            <p>TODO: 使用ERP权限系统实现权限树和分配功能</p>
+          </div>
         )}
       </Modal>
 
@@ -767,7 +681,7 @@ export function RoleManagement() {
           copyForm.resetFields();
         }}
         footer={null}
-        width={500}
+        width={400}
       >
         <Form
           form={copyForm}
@@ -786,22 +700,11 @@ export function RoleManagement() {
             <Input placeholder="请输入新角色名称" />
           </Form.Item>
 
-          <Form.Item
-            name="code"
-            label="新角色代码"
-            rules={[
-              { required: true, message: '请输入新角色代码' },
-              { min: 2, message: '角色代码至少2个字符' },
-              { max: 50, message: '角色代码最多50个字符' },
-              { pattern: /^[A-Z][A-Z0-9_]*$/, message: '角色代码必须以大写字母开头，只能包含大写字母、数字和下划线' },
-            ]}
-          >
-            <Input placeholder="请输入新角色代码" />
-          </Form.Item>
-
-          <Divider />
-
-          <Row justify="end">
+          <div style={{ 
+            marginTop: '24px', 
+            display: 'flex', 
+            justifyContent: 'flex-end' 
+          }}>
             <Space>
               <Button onClick={() => {
                 setCopyModalVisible(false);
@@ -814,9 +717,10 @@ export function RoleManagement() {
                 复制
               </Button>
             </Space>
-          </Row>
+          </div>
         </Form>
       </Modal>
+
     </div>
   );
 }

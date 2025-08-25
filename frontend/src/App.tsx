@@ -19,6 +19,11 @@ import OrganizationManagement from './pages/OrganizationManagement';
 import SystemManagement from './pages/SystemManagement';
 import Layout from './components/Layout';
 import UserEditPage from './pages/UserEditPage';
+import DocTypeManagement from './pages/DocTypeManagement';
+import PermissionManagement from './pages/PermissionManagement';
+import RoleCreate from './pages/RoleCreate';
+import RolePermissionEdit from './pages/RolePermissionEdit';
+import UserPermissionManagement from './pages/UserPermissionManagement';
 import './App.css';
 
 // 设置dayjs中文语言
@@ -72,10 +77,17 @@ function App() {
                           <Route path="/users/import" element={<div>批量导入用户</div>} />
                           <Route path="/roles" element={<RoleManagement />} />
                           <Route path="/roles/list" element={<RoleManagement />} />
-                          <Route path="/roles/create" element={<div>创建角色</div>} />
-                          <Route path="/roles/edit/:id" element={<div>编辑角色</div>} />
+                          <Route path="/roles/create" element={<RoleCreate />} />
+                          <Route path="/roles/edit/:id" element={<RoleCreate />} />
+                          <Route path="/roles/:id/permissions" element={<RolePermissionEdit />} />
                           <Route path="/roles/import" element={<div>批量导入角色</div>} />
-                          <Route path="/permissions" element={<div>权限管理</div>} />
+                          <Route path="/permissions" element={<PermissionManagement />} />
+                          <Route path="/permission-manager" element={<RolePermissionEdit />} />
+                          <Route path="/user-permissions" element={<UserPermissionManagement />} />
+                          <Route path="/doctypes" element={<DocTypeManagement />} />
+                          <Route path="/doctypes/list" element={<DocTypeManagement />} />
+                          <Route path="/doctypes/create" element={<DocTypeManagement />} />
+                          <Route path="/doctypes/edit/:id" element={<DocTypeManagement />} />
                           <Route path="/organizations" element={<OrganizationManagement />} />
                           <Route path="/settings" element={<SystemManagement />} />
                           <Route path="/profile" element={<div>个人资料</div>} />

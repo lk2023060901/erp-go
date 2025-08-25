@@ -1,0 +1,214 @@
+/* 角色权限配置组件样式 */
+.role-permission-config {
+  padding: 16px;
+}
+
+/* 选项卡样式 */
+.role-permission-config .ant-tabs-tab {
+  padding: 12px 16px;
+  font-weight: 500;
+}
+
+.role-permission-config .ant-tabs-tab-active {
+  background-color: #f0f2ff;
+  border-radius: 8px 8px 0 0;
+}
+
+/* 折叠面板样式 */
+.role-permission-config .ant-collapse-ghost > .ant-collapse-item {
+  margin-bottom: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+}
+
+.role-permission-config .ant-collapse-header {
+  padding: 12px 16px !important;
+  font-weight: 600;
+  background-color: #fafafa;
+}
+
+.role-permission-config .ant-collapse-content-box {
+  padding: 16px !important;
+}
+
+/* 表格样式 */
+.role-permission-config .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.role-permission-config .ant-table-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+}
+
+.role-permission-config .ant-table-small {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* 标签样式 */
+.role-permission-config .ant-tag {
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 18px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  border: none;
+  font-weight: 500;
+}
+
+.role-permission-config .ant-tag.ant-tag-green {
+  background-color: #f6ffed;
+  color: #52c41a;
+}
+
+.role-permission-config .ant-tag.ant-tag-blue {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.role-permission-config .ant-tag.ant-tag-orange {
+  background-color: #fff7e6;
+  color: #fa8c16;
+}
+
+.role-permission-config .ant-tag.ant-tag-purple {
+  background-color: #f9f0ff;
+  color: #722ed1;
+}
+
+/* 按钮样式 */
+.role-permission-config .ant-btn-text {
+  padding: 4px 8px;
+  height: auto;
+  border-radius: 4px;
+}
+
+.role-permission-config .ant-btn-text:hover {
+  background-color: #f5f5f5;
+}
+
+.role-permission-config .ant-btn-text.ant-btn-dangerous:hover {
+  background-color: #fff2f0;
+  color: #ff4d4f;
+}
+
+/* 警告框样式 */
+.role-permission-config .ant-alert {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.role-permission-config .ant-alert-info {
+  background-color: #e6f7ff;
+  border-left: 4px solid #1890ff;
+}
+
+/* 模态框样式 */
+.role-permission-config .ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.role-permission-config .ant-modal-title {
+  color: #1890ff;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.role-permission-config .ant-modal-body {
+  padding: 24px;
+}
+
+/* 表单样式 */
+.role-permission-config .ant-form-item-label > label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.role-permission-config .ant-divider-horizontal {
+  margin: 20px 0 16px;
+}
+
+.role-permission-config .ant-divider-inner-text {
+  font-weight: 600;
+  color: #595959;
+  background-color: #fafafa;
+  padding: 0 16px;
+}
+
+/* 复选框组样式 */
+.role-permission-config .ant-checkbox-wrapper {
+  margin-right: 0;
+  width: 100%;
+}
+
+.role-permission-config .ant-checkbox-wrapper .ant-space {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.role-permission-config .ant-checkbox-wrapper:hover .ant-space {
+  border-color: #1890ff;
+  background-color: #f0f2ff;
+}
+
+.role-permission-config .ant-checkbox-wrapper-checked .ant-space {
+  background-color: #e6f7ff;
+  border-color: #1890ff;
+}
+
+/* 权限图标样式 */
+.role-permission-config .anticon {
+  margin-right: 4px;
+}
+
+/* 加载状态样式 */
+.role-permission-config .ant-spin-nested-loading {
+  min-height: 200px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .role-permission-config .ant-modal {
+    margin: 0;
+    padding: 16px;
+    max-width: 100%;
+  }
+  
+  .role-permission-config .ant-col {
+    margin-bottom: 8px;
+  }
+  
+  .role-permission-config .ant-table {
+    font-size: 14px;
+  }
+  
+  .role-permission-config .ant-collapse-header {
+    padding: 8px 12px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .role-permission-config .ant-modal-body {
+    padding: 16px;
+  }
+  
+  .role-permission-config .ant-row {
+    flex-direction: column;
+  }
+  
+  .role-permission-config .ant-col {
+    width: 100%;
+  }
+  
+  .role-permission-config .ant-table-small .ant-table-tbody > tr > td {
+    padding: 8px;
+  }
+}

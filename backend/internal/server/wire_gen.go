@@ -35,16 +35,16 @@ func InitializeApp(server *conf.Server, confData *conf.Data, logger log.Logger) 
 	roleRepo := data.NewRoleRepo(dataData, logger)
 	roleUsecase := biz.NewRoleUsecase(roleRepo, logger)
 	roleService := service.NewRoleService(roleUsecase, logger)
-	// permissionRepo := data.NewPermissionRepo(dataData, logger)
-	// permissionUsecase := biz.NewPermissionUsecase(permissionRepo, logger)
-	// permissionService := service.NewPermissionService(permissionUsecase, logger)  // Temporarily disabled
+	permissionRepo := data.NewPermissionRepo(dataData, logger)
+	permissionUsecase := biz.NewPermissionUsecase(permissionRepo, logger)
+	permissionService := service.NewPermissionService(permissionUsecase, logger)
 	organizationRepo := data.NewOrganizationRepo(dataData, logger)
 	organizationUsecase := biz.NewOrganizationUsecase(organizationRepo, logger)
 	organizationService := service.NewOrganizationService(organizationUsecase, logger)
 	auditRepo := data.NewAuditRepo(dataData, logger)
 	auditUsecase := biz.NewAuditUsecase(auditRepo, logger)
 	systemService := service.NewSystemService(auditUsecase, logger)
-	httpServer := NewHTTPServer(server, confData, authService, userService, roleService /* permissionService, */, organizationService, systemService, logger)
+	httpServer := NewHTTPServer(server, confData, authService, userService, roleService, permissionService, organizationService, systemService, logger)
 	grpcServer := NewGRPCServer(server, logger)
 	app := newApp(logger, httpServer, grpcServer)
 	return app, func() {
@@ -55,7 +55,7 @@ func InitializeApp(server *conf.Server, confData *conf.Data, logger log.Logger) 
 // wire.go:
 
 // ProviderSet 是所有提供者的集合
-var ProviderSet = wire.NewSet(data.ProviderSet, biz.NewUserUsecase, biz.NewRoleUsecase, biz.NewPermissionUsecase, biz.NewOrganizationUsecase, biz.NewAuditUsecase, service.NewAuthService, service.NewUserService, service.NewRoleService /* service.NewPermissionService, */, service.NewOrganizationService, service.NewSystemService, pkg.NewPasswordManager, NewJWTManager,
+var ProviderSet = wire.NewSet(data.ProviderSet, biz.NewUserUsecase, biz.NewRoleUsecase, biz.NewPermissionUsecase, biz.NewOrganizationUsecase, biz.NewAuditUsecase, service.NewAuthService, service.NewUserService, service.NewRoleService, service.NewPermissionService, service.NewOrganizationService, service.NewSystemService, pkg.NewPasswordManager, NewJWTManager,
 
 	NewHTTPServer,
 	NewGRPCServer,

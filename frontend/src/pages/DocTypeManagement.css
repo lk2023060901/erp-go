@@ -1,0 +1,185 @@
+/* DocType管理页面样式 */
+.doctype-management {
+  padding: 24px;
+}
+
+.doctype-management .ant-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.doctype-management-header {
+  margin-bottom: 0;
+}
+
+.doctype-management-header .ant-typography {
+  margin-bottom: 24px;
+  color: #1890ff;
+}
+
+.doctype-management-header .ant-typography .anticon {
+  margin-right: 8px;
+}
+
+/* 搜索和筛选区域 */
+.doctype-management .ant-input-search {
+  border-radius: 6px;
+}
+
+.doctype-management .ant-select {
+  border-radius: 6px;
+}
+
+.doctype-management .ant-btn {
+  border-radius: 6px;
+}
+
+/* 表格样式 */
+.doctype-management .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.doctype-management .ant-table-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+}
+
+/* DocType名称列样式 */
+.doctype-management .ant-table-tbody tr td:first-child {
+  font-weight: 500;
+}
+
+/* 特性标签样式 */
+.doctype-management .ant-tag {
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 20px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.doctype-management .ant-tag.ant-tag-green {
+  background-color: #f6ffed;
+  border-color: #b7eb8f;
+  color: #52c41a;
+}
+
+.doctype-management .ant-tag.ant-tag-orange {
+  background-color: #fff7e6;
+  border-color: #ffd591;
+  color: #fa8c16;
+}
+
+.doctype-management .ant-tag.ant-tag-purple {
+  background-color: #f9f0ff;
+  border-color: #d3adf7;
+  color: #722ed1;
+}
+
+.doctype-management .ant-tag.ant-tag-cyan {
+  background-color: #e6fffb;
+  border-color: #87e8de;
+  color: #13c2c2;
+}
+
+.doctype-management .ant-tag.ant-tag-blue {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+  color: #1890ff;
+}
+
+/* 操作按钮样式 */
+.doctype-management .ant-btn-text {
+  padding: 4px 8px;
+  height: auto;
+  border-radius: 4px;
+}
+
+.doctype-management .ant-btn-text:hover {
+  background-color: #f5f5f5;
+}
+
+.doctype-management .ant-btn-text.ant-btn-dangerous:hover {
+  background-color: #fff2f0;
+  color: #ff4d4f;
+}
+
+/* 模态框样式 */
+.doctype-management .ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.doctype-management .ant-modal-title {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.doctype-management .ant-form-item-label > label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.doctype-management .ant-divider-horizontal {
+  margin: 16px 0;
+}
+
+.doctype-management .ant-divider-inner-text {
+  font-weight: 500;
+  color: #595959;
+}
+
+/* 开关组件样式 */
+.doctype-management .ant-switch {
+  margin-right: 8px;
+}
+
+/* 分页器样式 */
+.doctype-management .ant-pagination {
+  margin-top: 16px;
+  text-align: right;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .doctype-management {
+    padding: 16px;
+  }
+  
+  .doctype-management .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .doctype-management .ant-table {
+    font-size: 14px;
+  }
+  
+  .doctype-management .ant-modal {
+    margin: 0;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .doctype-management {
+    padding: 8px;
+  }
+  
+  .doctype-management-header .ant-row {
+    flex-direction: column;
+  }
+  
+  .doctype-management-header .ant-col {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .doctype-management .ant-btn-group {
+    flex-direction: column;
+  }
+  
+  .doctype-management .ant-btn-group .ant-btn {
+    margin-bottom: 8px;
+  }
+}

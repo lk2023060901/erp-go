@@ -12,15 +12,15 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-// FrappePermissionService Frappe权限管理服务
-type FrappePermissionService struct {
-	permissionUc biz.PermissionUsecaseInterface
+// PermissionService 权限管理服务
+type PermissionService struct {
+	permissionUc *biz.PermissionUsecase
 	log          *log.Helper
 }
 
-// NewFrappePermissionService 创建Frappe权限服务
-func NewFrappePermissionService(permissionUc biz.PermissionUsecaseInterface, logger log.Logger) *FrappePermissionService {
-	return &FrappePermissionService{
+// NewPermissionService 创建权限服务
+func NewPermissionService(permissionUc *biz.PermissionUsecase, logger log.Logger) *PermissionService {
+	return &PermissionService{
 		permissionUc: permissionUc,
 		log:          log.NewHelper(logger),
 	}
@@ -81,7 +81,7 @@ type DocTypeInfo struct {
 }
 
 // CreateDocType 创建文档类型
-func (s *FrappePermissionService) CreateDocType(ctx context.Context, req *CreateDocTypeRequest) (*DocTypeInfo, error) {
+func (s *PermissionService) CreateDocType(ctx context.Context, req *CreateDocTypeRequest) (*DocTypeInfo, error) {
 	docType := &biz.DocType{
 		Name:           req.Name,
 		Label:          req.Label,
@@ -143,7 +143,7 @@ func (s *FrappePermissionService) CreateDocType(ctx context.Context, req *Create
 }
 
 // GetDocType 获取文档类型
-func (s *FrappePermissionService) GetDocType(ctx context.Context, name string) (*DocTypeInfo, error) {
+func (s *PermissionService) GetDocType(ctx context.Context, name string) (*DocTypeInfo, error) {
 	if name == "" {
 		return nil, errors.BadRequest("INVALID_PARAMETER", "文档类型名称不能为空")
 	}
@@ -179,7 +179,7 @@ func (s *FrappePermissionService) GetDocType(ctx context.Context, name string) (
 }
 
 // UpdateDocType 更新文档类型
-func (s *FrappePermissionService) UpdateDocType(ctx context.Context, req *UpdateDocTypeRequest) (*DocTypeInfo, error) {
+func (s *PermissionService) UpdateDocType(ctx context.Context, req *UpdateDocTypeRequest) (*DocTypeInfo, error) {
 	if req.Name == "" {
 		return nil, errors.BadRequest("INVALID_PARAMETER", "文档类型名称不能为空")
 	}
@@ -237,7 +237,7 @@ func (s *FrappePermissionService) UpdateDocType(ctx context.Context, req *Update
 }
 
 // DeleteDocType 删除文档类型
-func (s *FrappePermissionService) DeleteDocType(ctx context.Context, name string) error {
+func (s *PermissionService) DeleteDocType(ctx context.Context, name string) error {
 	if name == "" {
 		return errors.BadRequest("INVALID_PARAMETER", "文档类型名称不能为空")
 	}
@@ -264,7 +264,7 @@ type ListDocTypesResponse struct {
 }
 
 // ListDocTypes 列出文档类型
-func (s *FrappePermissionService) ListDocTypes(ctx context.Context, req *ListDocTypesRequest) (*ListDocTypesResponse, error) {
+func (s *PermissionService) ListDocTypes(ctx context.Context, req *ListDocTypesRequest) (*ListDocTypesResponse, error) {
 	docTypes, err := s.permissionUc.ListDocTypes(ctx, req.Module)
 	if err != nil {
 		s.log.Errorf("Failed to list doctypes: %v", err)
@@ -388,7 +388,7 @@ type PermissionRuleInfo struct {
 }
 
 // CreatePermissionRule 创建权限规则
-func (s *FrappePermissionService) CreatePermissionRule(ctx context.Context, req *CreatePermissionRuleRequest) (*PermissionRuleInfo, error) {
+func (s *PermissionService) CreatePermissionRule(ctx context.Context, req *CreatePermissionRuleRequest) (*PermissionRuleInfo, error) {
 	// 先验证请求数据
 	if err := req.Validate(); err != nil {
 		s.log.Errorf("CreatePermissionRuleRequest validation failed: %v", err)
@@ -457,7 +457,7 @@ func (s *FrappePermissionService) CreatePermissionRule(ctx context.Context, req 
 }
 
 // GetPermissionRule 获取权限规则
-func (s *FrappePermissionService) GetPermissionRule(ctx context.Context, id int64) (*PermissionRuleInfo, error) {
+func (s *PermissionService) GetPermissionRule(ctx context.Context, id int64) (*PermissionRuleInfo, error) {
 	if id <= 0 {
 		return nil, errors.BadRequest("INVALID_PARAMETER", "权限规则ID无效")
 	}
@@ -493,7 +493,7 @@ func (s *FrappePermissionService) GetPermissionRule(ctx context.Context, id int6
 }
 
 // UpdatePermissionRule 更新权限规则
-func (s *FrappePermissionService) UpdatePermissionRule(ctx context.Context, req *UpdatePermissionRuleRequest) (*PermissionRuleInfo, error) {
+func (s *PermissionService) UpdatePermissionRule(ctx context.Context, req *UpdatePermissionRuleRequest) (*PermissionRuleInfo, error) {
 	if req.ID <= 0 {
 		return nil, errors.BadRequest("INVALID_PARAMETER", "权限规则ID无效")
 	}
@@ -553,7 +553,7 @@ func (s *FrappePermissionService) UpdatePermissionRule(ctx context.Context, req 
 }
 
 // DeletePermissionRule 删除权限规则
-func (s *FrappePermissionService) DeletePermissionRule(ctx context.Context, id int64) error {
+func (s *PermissionService) DeletePermissionRule(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errors.BadRequest("INVALID_PARAMETER", "权限规则ID无效")
 	}
@@ -581,7 +581,7 @@ type ListPermissionRulesResponse struct {
 }
 
 // ListPermissionRules 列出权限规则
-func (s *FrappePermissionService) ListPermissionRules(ctx context.Context, req *ListPermissionRulesRequest) (*ListPermissionRulesResponse, error) {
+func (s *PermissionService) ListPermissionRules(ctx context.Context, req *ListPermissionRulesRequest) (*ListPermissionRulesResponse, error) {
 	rules, err := s.permissionUc.ListPermissionRules(ctx, req.RoleID, req.DocType)
 	if err != nil {
 		s.log.Errorf("Failed to list permission rules: %v", err)
@@ -627,7 +627,7 @@ type BatchCreatePermissionRulesRequest struct {
 }
 
 // BatchCreatePermissionRules 批量创建权限规则
-func (s *FrappePermissionService) BatchCreatePermissionRules(ctx context.Context, req *BatchCreatePermissionRulesRequest) error {
+func (s *PermissionService) BatchCreatePermissionRules(ctx context.Context, req *BatchCreatePermissionRulesRequest) error {
 	if len(req.Rules) == 0 {
 		return errors.BadRequest("INVALID_PARAMETER", "权限规则列表不能为空")
 	}
@@ -686,7 +686,7 @@ type CheckPermissionResponse struct {
 }
 
 // CheckPermission 检查权限
-func (s *FrappePermissionService) CheckPermission(ctx context.Context, req *CheckPermissionRequest) (*CheckPermissionResponse, error) {
+func (s *PermissionService) CheckPermission(ctx context.Context, req *CheckPermissionRequest) (*CheckPermissionResponse, error) {
 	hasPermission, err := s.permissionUc.CheckPermission(ctx, req.UserID, req.DocType, req.Permission, req.PermissionLevel)
 	if err != nil {
 		s.log.Errorf("Failed to check permission: %v", err)
@@ -707,7 +707,7 @@ type CheckDocumentPermissionRequest struct {
 }
 
 // CheckDocumentPermission 检查文档权限
-func (s *FrappePermissionService) CheckDocumentPermission(ctx context.Context, req *CheckDocumentPermissionRequest) (*CheckPermissionResponse, error) {
+func (s *PermissionService) CheckDocumentPermission(ctx context.Context, req *CheckDocumentPermissionRequest) (*CheckPermissionResponse, error) {
 	permissionReq := &biz.PermissionCheckRequest{
 		UserID:          req.UserID,
 		DocType:         req.DocType,
@@ -745,7 +745,7 @@ type GetUserPermissionLevelResponse struct {
 }
 
 // GetUserPermissionLevel 获取用户权限级别
-func (s *FrappePermissionService) GetUserPermissionLevel(ctx context.Context, req *GetUserPermissionLevelRequest) (*GetUserPermissionLevelResponse, error) {
+func (s *PermissionService) GetUserPermissionLevel(ctx context.Context, req *GetUserPermissionLevelRequest) (*GetUserPermissionLevelResponse, error) {
 	level, err := s.permissionUc.GetUserPermissionLevel(ctx, req.UserID, req.DocType)
 	if err != nil {
 		s.log.Errorf("Failed to get user permission level: %v", err)
@@ -769,7 +769,7 @@ type GetUserEnhancedPermissionsResponse struct {
 }
 
 // GetUserEnhancedPermissions 获取用户增强权限
-func (s *FrappePermissionService) GetUserEnhancedPermissions(ctx context.Context, req *GetUserEnhancedPermissionsRequest) (*GetUserEnhancedPermissionsResponse, error) {
+func (s *PermissionService) GetUserEnhancedPermissions(ctx context.Context, req *GetUserEnhancedPermissionsRequest) (*GetUserEnhancedPermissionsResponse, error) {
 	permissions, err := s.permissionUc.GetUserEnhancedPermissions(ctx, req.UserID, req.DocType)
 	if err != nil {
 		s.log.Errorf("Failed to get user enhanced permissions: %v", err)
@@ -793,7 +793,7 @@ type GetAccessibleFieldsResponse struct {
 }
 
 // GetAccessibleFields 获取可访问字段
-func (s *FrappePermissionService) GetAccessibleFields(ctx context.Context, req *GetAccessibleFieldsRequest) (*GetAccessibleFieldsResponse, error) {
+func (s *PermissionService) GetAccessibleFields(ctx context.Context, req *GetAccessibleFieldsRequest) (*GetAccessibleFieldsResponse, error) {
 	fieldReq := &biz.FieldPermissionRequest{
 		UserID:  req.UserID,
 		DocType: req.DocType,
@@ -823,7 +823,7 @@ type FilterDocumentsByPermissionResponse struct {
 }
 
 // FilterDocumentsByPermission 按权限过滤文档
-func (s *FrappePermissionService) FilterDocumentsByPermission(ctx context.Context, req *FilterDocumentsByPermissionRequest) (*FilterDocumentsByPermissionResponse, error) {
+func (s *PermissionService) FilterDocumentsByPermission(ctx context.Context, req *FilterDocumentsByPermissionRequest) (*FilterDocumentsByPermissionResponse, error) {
 	filteredDocs, err := s.permissionUc.FilterDocumentsByPermission(ctx, req.UserID, req.DocumentType, req.Documents)
 	if err != nil {
 		s.log.Errorf("Failed to filter documents by permission: %v", err)
@@ -846,7 +846,7 @@ type GetUserRolesResponse struct {
 }
 
 // GetUserRoles 获取用户角色
-func (s *FrappePermissionService) GetUserRoles(ctx context.Context, req *GetUserRolesRequest) (*GetUserRolesResponse, error) {
+func (s *PermissionService) GetUserRoles(ctx context.Context, req *GetUserRolesRequest) (*GetUserRolesResponse, error) {
 	roles, err := s.permissionUc.GetUserRoles(ctx, req.UserID)
 	if err != nil {
 		s.log.Errorf("Failed to get user roles: %v", err)
@@ -899,7 +899,7 @@ type ListUserPermissionsResponse struct {
 }
 
 // CreateUserPermission 创建用户权限
-func (s *FrappePermissionService) CreateUserPermission(ctx context.Context, req *CreateUserPermissionRequest) (*UserPermissionInfo, error) {
+func (s *PermissionService) CreateUserPermission(ctx context.Context, req *CreateUserPermissionRequest) (*UserPermissionInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -954,7 +954,7 @@ func (s *FrappePermissionService) CreateUserPermission(ctx context.Context, req 
 }
 
 // GetUserPermission 获取用户权限详情
-func (s *FrappePermissionService) GetUserPermission(ctx context.Context, permissionID int64) (*UserPermissionInfo, error) {
+func (s *PermissionService) GetUserPermission(ctx context.Context, permissionID int64) (*UserPermissionInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -971,7 +971,7 @@ func (s *FrappePermissionService) GetUserPermission(ctx context.Context, permiss
 }
 
 // UpdateUserPermission 更新用户权限
-func (s *FrappePermissionService) UpdateUserPermission(ctx context.Context, permissionID int64, req *CreateUserPermissionRequest) (*UserPermissionInfo, error) {
+func (s *PermissionService) UpdateUserPermission(ctx context.Context, permissionID int64, req *CreateUserPermissionRequest) (*UserPermissionInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -1003,7 +1003,7 @@ func (s *FrappePermissionService) UpdateUserPermission(ctx context.Context, perm
 }
 
 // DeleteUserPermission 删除用户权限
-func (s *FrappePermissionService) DeleteUserPermission(ctx context.Context, permissionID int64) error {
+func (s *PermissionService) DeleteUserPermission(ctx context.Context, permissionID int64) error {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -1021,7 +1021,7 @@ func (s *FrappePermissionService) DeleteUserPermission(ctx context.Context, perm
 }
 
 // ListUserPermissions 获取用户权限列表
-func (s *FrappePermissionService) ListUserPermissions(ctx context.Context, req *ListUserPermissionsRequest) (*ListUserPermissionsResponse, error) {
+func (s *PermissionService) ListUserPermissions(ctx context.Context, req *ListUserPermissionsRequest) (*ListUserPermissionsResponse, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -1099,7 +1099,7 @@ type ListFieldPermissionLevelsResponse struct {
 }
 
 // CreateFieldPermissionLevel 创建字段权限级别
-func (s *FrappePermissionService) CreateFieldPermissionLevel(ctx context.Context, req *CreateFieldPermissionLevelRequest) (*FieldPermissionLevelInfo, error) {
+func (s *PermissionService) CreateFieldPermissionLevel(ctx context.Context, req *CreateFieldPermissionLevelRequest) (*FieldPermissionLevelInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN") {
@@ -1132,7 +1132,7 @@ func (s *FrappePermissionService) CreateFieldPermissionLevel(ctx context.Context
 }
 
 // GetFieldPermissionLevel 获取字段权限级别详情
-func (s *FrappePermissionService) GetFieldPermissionLevel(ctx context.Context, levelID int64) (*FieldPermissionLevelInfo, error) {
+func (s *PermissionService) GetFieldPermissionLevel(ctx context.Context, levelID int64) (*FieldPermissionLevelInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -1149,7 +1149,7 @@ func (s *FrappePermissionService) GetFieldPermissionLevel(ctx context.Context, l
 }
 
 // UpdateFieldPermissionLevel 更新字段权限级别
-func (s *FrappePermissionService) UpdateFieldPermissionLevel(ctx context.Context, levelID int64, req *CreateFieldPermissionLevelRequest) (*FieldPermissionLevelInfo, error) {
+func (s *PermissionService) UpdateFieldPermissionLevel(ctx context.Context, levelID int64, req *CreateFieldPermissionLevelRequest) (*FieldPermissionLevelInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN") {
@@ -1185,7 +1185,7 @@ func (s *FrappePermissionService) UpdateFieldPermissionLevel(ctx context.Context
 }
 
 // DeleteFieldPermissionLevel 删除字段权限级别
-func (s *FrappePermissionService) DeleteFieldPermissionLevel(ctx context.Context, levelID int64) error {
+func (s *PermissionService) DeleteFieldPermissionLevel(ctx context.Context, levelID int64) error {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN") {
@@ -1203,7 +1203,7 @@ func (s *FrappePermissionService) DeleteFieldPermissionLevel(ctx context.Context
 }
 
 // ListFieldPermissionLevels 获取字段权限级别列表
-func (s *FrappePermissionService) ListFieldPermissionLevels(ctx context.Context, req *ListFieldPermissionLevelsRequest) (*ListFieldPermissionLevelsResponse, error) {
+func (s *PermissionService) ListFieldPermissionLevels(ctx context.Context, req *ListFieldPermissionLevelsRequest) (*ListFieldPermissionLevelsResponse, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -1292,7 +1292,7 @@ type ListDocumentWorkflowStatesResponse struct {
 }
 
 // CreateDocumentWorkflowState 创建文档工作流状态
-func (s *FrappePermissionService) CreateDocumentWorkflowState(ctx context.Context, req *CreateDocumentWorkflowStateRequest) (*DocumentWorkflowStateInfo, error) {
+func (s *PermissionService) CreateDocumentWorkflowState(ctx context.Context, req *CreateDocumentWorkflowStateRequest) (*DocumentWorkflowStateInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN") {
@@ -1327,7 +1327,7 @@ func (s *FrappePermissionService) CreateDocumentWorkflowState(ctx context.Contex
 }
 
 // GetDocumentWorkflowState 获取文档工作流状态详情
-func (s *FrappePermissionService) GetDocumentWorkflowState(ctx context.Context, stateID int64) (*DocumentWorkflowStateInfo, error) {
+func (s *PermissionService) GetDocumentWorkflowState(ctx context.Context, stateID int64) (*DocumentWorkflowStateInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -1344,7 +1344,7 @@ func (s *FrappePermissionService) GetDocumentWorkflowState(ctx context.Context, 
 }
 
 // UpdateDocumentWorkflowState 更新文档工作流状态
-func (s *FrappePermissionService) UpdateDocumentWorkflowState(ctx context.Context, stateID int64, req *CreateDocumentWorkflowStateRequest) (*DocumentWorkflowStateInfo, error) {
+func (s *PermissionService) UpdateDocumentWorkflowState(ctx context.Context, stateID int64, req *CreateDocumentWorkflowStateRequest) (*DocumentWorkflowStateInfo, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN") {
@@ -1382,7 +1382,7 @@ func (s *FrappePermissionService) UpdateDocumentWorkflowState(ctx context.Contex
 }
 
 // DeleteDocumentWorkflowState 删除文档工作流状态
-func (s *FrappePermissionService) DeleteDocumentWorkflowState(ctx context.Context, stateID int64) error {
+func (s *PermissionService) DeleteDocumentWorkflowState(ctx context.Context, stateID int64) error {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN") {
@@ -1400,7 +1400,7 @@ func (s *FrappePermissionService) DeleteDocumentWorkflowState(ctx context.Contex
 }
 
 // ListDocumentWorkflowStates 获取文档工作流状态列表
-func (s *FrappePermissionService) ListDocumentWorkflowStates(ctx context.Context, req *ListDocumentWorkflowStatesRequest) (*ListDocumentWorkflowStatesResponse, error) {
+func (s *PermissionService) ListDocumentWorkflowStates(ctx context.Context, req *ListDocumentWorkflowStatesRequest) (*ListDocumentWorkflowStatesResponse, error) {
 	// 检查权限
 	currentUser := middleware.GetCurrentUser(ctx)
 	if !currentUser.HasAnyRole("SUPER_ADMIN", "ADMIN", "PERMISSION_MANAGER") {
@@ -1446,7 +1446,7 @@ func (s *FrappePermissionService) ListDocumentWorkflowStates(ctx context.Context
 
 // 辅助转换函数
 
-func (s *FrappePermissionService) convertToUserPermissionInfo(userPermission *biz.UserPermission) *UserPermissionInfo {
+func (s *PermissionService) convertToUserPermissionInfo(userPermission *biz.UserPermission) *UserPermissionInfo {
 	return &UserPermissionInfo{
 		ID:           userPermission.ID,
 		UserID:       userPermission.UserID,
@@ -1458,7 +1458,7 @@ func (s *FrappePermissionService) convertToUserPermissionInfo(userPermission *bi
 	}
 }
 
-func (s *FrappePermissionService) convertToFieldPermissionLevelInfo(fieldPermissionLevel *biz.FieldPermissionLevel) *FieldPermissionLevelInfo {
+func (s *PermissionService) convertToFieldPermissionLevelInfo(fieldPermissionLevel *biz.FieldPermissionLevel) *FieldPermissionLevelInfo {
 	return &FieldPermissionLevelInfo{
 		ID:              fieldPermissionLevel.ID,
 		DocType:         fieldPermissionLevel.DocType,
@@ -1469,7 +1469,7 @@ func (s *FrappePermissionService) convertToFieldPermissionLevelInfo(fieldPermiss
 	}
 }
 
-func (s *FrappePermissionService) convertToDocumentWorkflowStateInfo(documentWorkflowState *biz.DocumentWorkflowState) *DocumentWorkflowStateInfo {
+func (s *PermissionService) convertToDocumentWorkflowStateInfo(documentWorkflowState *biz.DocumentWorkflowState) *DocumentWorkflowStateInfo {
 	return &DocumentWorkflowStateInfo{
 		ID:            documentWorkflowState.ID,
 		DocType:       documentWorkflowState.DocType,

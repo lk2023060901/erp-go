@@ -32,7 +32,7 @@ var ProviderSet = wire.NewSet(
 	service.NewAuthService,
 	service.NewUserService,
 	service.NewRoleService,
-	// service.NewPermissionService,  // Temporarily disabled
+	service.NewPermissionService,
 	service.NewOrganizationService,
 	service.NewSystemService,
 

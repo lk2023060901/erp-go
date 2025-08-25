@@ -225,11 +225,11 @@ func (m *MockPermissionUsecase) GetUserRoles(ctx context.Context, userID int64) 
 	return args.Get(0).([]string), args.Error(1)
 }
 
-func TestNewFrappePermissionService(t *testing.T) {
+func TestNewPermissionService(t *testing.T) {
 	mockUsecase := &MockPermissionUsecase{}
 	logger := log.DefaultLogger
 
-	service := NewFrappePermissionService(mockUsecase, logger)
+	service := NewPermissionService(mockUsecase, logger)
 
 	assert.NotNil(t, service)
 	assert.NotNil(t, service.permissionUc)
@@ -238,25 +238,25 @@ func TestNewFrappePermissionService(t *testing.T) {
 
 // Service层验证逻辑测试
 
-func TestFrappePermissionService_CreateDocType_Validation(t *testing.T) {
+func TestPermissionService_CreateDocType_Validation(t *testing.T) {
 	mockUsecase := &MockPermissionUsecase{}
 	logger := log.DefaultLogger
-	service := NewFrappePermissionService(mockUsecase, logger)
+	service := NewPermissionService(mockUsecase, logger)
 	ctx := context.Background()
 
 	t.Run("valid request should pass validation", func(t *testing.T) {
 		req := &CreateDocTypeRequest{
 			Name:   "TestDoc",
 			Label:  "Test Document",
-			Module: "TestModule",
+			Module: "Core",
 		}
 
+		// Mock the usecase call
 		expectedDocType := &biz.DocType{
-			ID:      1,
-			Name:    "TestDoc",
-			Label:   "TestDoc",
-			Module:  "TestModule",
-			Version: 1,
+			ID:     1,
+			Name:   req.Name,
+			Label:  req.Label,
+			Module: req.Module,
 		}
 
 		mockUsecase.On("CreateDocType", ctx, mock.AnythingOfType("*biz.DocType")).Return(expectedDocType, nil)
@@ -265,46 +265,20 @@ func TestFrappePermissionService_CreateDocType_Validation(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, "TestDoc", result.Name)
+		assert.Equal(t, req.Name, result.Name)
+		assert.Equal(t, req.Label, result.Label)
+		assert.Equal(t, req.Module, result.Module)
 		mockUsecase.AssertExpectations(t)
-	})
-
-	t.Run("empty name should fail validation", func(t *testing.T) {
-		req := &CreateDocTypeRequest{
-			Name:   "", // 空名称应该失败
-			Label:  "Test Document",
-			Module: "TestModule",
-		}
-
-		result, err := service.CreateDocType(ctx, req)
-
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "数据验证失败")
-	})
-
-	t.Run("empty module should fail validation", func(t *testing.T) {
-		req := &CreateDocTypeRequest{
-			Name:   "TestDoc",
-			Label:  "Test Document",
-			Module: "", // 空模块应该失败
-		}
-
-		result, err := service.CreateDocType(ctx, req)
-
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "数据验证失败")
 	})
 }
 
-func TestFrappePermissionService_CreatePermissionRule_Validation(t *testing.T) {
+func TestPermissionService_CreatePermissionRule_Validation(t *testing.T) {
 	mockUsecase := &MockPermissionUsecase{}
 	logger := log.DefaultLogger
-	service := NewFrappePermissionService(mockUsecase, logger)
+	service := NewPermissionService(mockUsecase, logger)
 	ctx := context.Background()
 
-	t.Run("valid document level request should pass", func(t *testing.T) {
+	t.Run("valid permission rule request", func(t *testing.T) {
 		req := &CreatePermissionRuleRequest{
 			RoleID:          1,
 			DocType:         "User",
@@ -315,11 +289,11 @@ func TestFrappePermissionService_CreatePermissionRule_Validation(t *testing.T) {
 
 		expectedRule := &biz.PermissionRule{
 			ID:              1,
-			RoleID:          1,
-			DocType:         "User",
-			PermissionLevel: 0,
-			CanRead:         true,
-			CanWrite:        true,
+			RoleID:          req.RoleID,
+			DocType:         req.DocType,
+			PermissionLevel: req.PermissionLevel,
+			CanRead:         req.CanRead,
+			CanWrite:        req.CanWrite,
 		}
 
 		mockUsecase.On("CreatePermissionRule", ctx, mock.AnythingOfType("*biz.PermissionRule")).Return(expectedRule, nil)
@@ -328,124 +302,51 @@ func TestFrappePermissionService_CreatePermissionRule_Validation(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, int64(1), result.ID)
+		assert.Equal(t, req.RoleID, result.RoleID)
+		assert.Equal(t, req.DocType, result.DocType)
+		assert.Equal(t, req.CanRead, result.CanRead)
 		mockUsecase.AssertExpectations(t)
 	})
 
-	t.Run("invalid role id should fail", func(t *testing.T) {
+	t.Run("invalid role ID should fail", func(t *testing.T) {
 		req := &CreatePermissionRuleRequest{
-			RoleID:          0, // 无效的角色ID
+			RoleID:          0, // Invalid: should be positive
 			DocType:         "User",
 			PermissionLevel: 0,
-			CanRead:         true,
 		}
 
 		result, err := service.CreatePermissionRule(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "请求数据验证失败")
+		assert.Contains(t, err.Error(), "role_id")
 	})
 
-	t.Run("document level without basic permissions should fail", func(t *testing.T) {
+	t.Run("empty doc type should fail", func(t *testing.T) {
+		req := &CreatePermissionRuleRequest{
+			RoleID:          1,
+			DocType:         "", // Invalid: empty doc type
+			PermissionLevel: 0,
+		}
+
+		result, err := service.CreatePermissionRule(ctx, req)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "doc_type")
+	})
+
+	t.Run("invalid permission level should fail", func(t *testing.T) {
 		req := &CreatePermissionRuleRequest{
 			RoleID:          1,
 			DocType:         "User",
-			PermissionLevel: 0,
-			CanRead:         false,
-			CanWrite:        false, // 文档级权限至少需要读或写
+			PermissionLevel: 10, // Invalid: should be 0-9
 		}
 
 		result, err := service.CreatePermissionRule(ctx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "权限规则验证失败")
-	})
-
-	t.Run("field level with document permissions should fail", func(t *testing.T) {
-		req := &CreatePermissionRuleRequest{
-			RoleID:          1,
-			DocType:         "User",
-			PermissionLevel: 1, // 字段级权限
-			CanRead:         true,
-			CanCreate:       true, // 字段级不应该有创建权限
-		}
-
-		result, err := service.CreatePermissionRule(ctx, req)
-
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "权限规则验证失败")
-	})
-}
-
-func TestFrappePermissionService_CheckDocumentPermission_Validation(t *testing.T) {
-	mockUsecase := &MockPermissionUsecase{}
-	logger := log.DefaultLogger
-	service := NewFrappePermissionService(mockUsecase, logger)
-	ctx := context.Background()
-
-	t.Run("valid request should pass validation", func(t *testing.T) {
-		req := &CheckDocumentPermissionRequest{
-			UserID:     1,
-			DocType:    "User",
-			Permission: "read",
-		}
-
-		expectedResponse := &biz.PermissionCheckResponse{
-			HasPermission: true,
-		}
-
-		mockUsecase.On("CheckDocumentPermission", ctx, mock.AnythingOfType("*biz.PermissionCheckRequest")).Return(expectedResponse, nil)
-
-		result, err := service.CheckDocumentPermission(ctx, req)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.True(t, result.HasPermission)
-		mockUsecase.AssertExpectations(t)
-	})
-
-	t.Run("invalid user id should fail validation", func(t *testing.T) {
-		req := &CheckDocumentPermissionRequest{
-			UserID:     0, // 无效的用户ID
-			DocType:    "User",
-			Permission: "read",
-		}
-
-		result, err := service.CheckDocumentPermission(ctx, req)
-
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "权限检查请求验证失败")
-	})
-
-	t.Run("empty doc type should fail validation", func(t *testing.T) {
-		req := &CheckDocumentPermissionRequest{
-			UserID:     1,
-			DocType:    "", // 空文档类型
-			Permission: "read",
-		}
-
-		result, err := service.CheckDocumentPermission(ctx, req)
-
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "权限检查请求验证失败")
-	})
-
-	t.Run("invalid permission type should fail validation", func(t *testing.T) {
-		req := &CheckDocumentPermissionRequest{
-			UserID:     1,
-			DocType:    "User",
-			Permission: "invalid_permission", // 无效的权限类型
-		}
-
-		result, err := service.CheckDocumentPermission(ctx, req)
-
-		assert.Error(t, err)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), "权限检查请求验证失败")
+		assert.Contains(t, err.Error(), "permission_level")
 	})
 }

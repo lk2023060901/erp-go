@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"erp-system/internal/conf"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -15,6 +17,46 @@ import (
 
 // ProviderSet is data providers.
 var ProviderSet = wire.NewSet(NewData, NewUserRepo, NewRoleRepo, NewPermissionRepo, NewOrganizationRepo, NewSessionRepo, NewAuditRepo)
+
+// getProjectRoot 获取项目根目录路径
+func getProjectRoot() string {
+	// 获取当前文件的绝对路径
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		// 如果无法获取当前文件路径，使用工作目录
+		wd, err := os.Getwd()
+		if err != nil {
+			return "."
+		}
+		// 从当前工作目录向上查找项目根目录
+		for {
+			if _, err := os.Stat(filepath.Join(wd, "go.mod")); err == nil {
+				return wd
+			}
+			parent := filepath.Dir(wd)
+			if parent == wd {
+				break
+			}
+			wd = parent
+		}
+		return "."
+	}
+	
+	// 从当前文件路径向上查找项目根目录
+	dir := filepath.Dir(filename)
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+	
+	return "."
+}
 
 // Data .
 type Data struct {
@@ -73,11 +115,14 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 
 // initSQLiteDB 初始化SQLite数据库
 func initSQLiteDB(db *sql.DB, log *log.Helper) error {
+	// 获取项目根路径
+	projectRoot := getProjectRoot()
+	
 	// 执行核心系统表结构
-	coreSchemaFile := "../database/schema/core_system.sql"
+	coreSchemaFile := filepath.Join(projectRoot, "database", "schema", "core_system.sql")
 	coreSchemaBytes, err := os.ReadFile(coreSchemaFile)
 	if err != nil {
-		log.Warnf("core_system.sql not found, creating basic tables manually")
+		log.Warnf("core_system.sql not found at %s, creating basic tables manually", coreSchemaFile)
 		return initBasicTables(db, log)
 	}
 
@@ -87,30 +132,36 @@ func initSQLiteDB(db *sql.DB, log *log.Helper) error {
 	}
 
 	// 执行权限系统表结构
-	permissionSchemaFile := "../database/schema/permission_system.sql"
+	permissionSchemaFile := filepath.Join(projectRoot, "database", "schema", "permission_system.sql")
 	permissionSchemaBytes, err := os.ReadFile(permissionSchemaFile)
 	if err == nil {
 		if err := executeSQLScript(db, string(permissionSchemaBytes), log); err != nil {
 			log.Warnf("Failed to execute permission system schema: %v", err)
 		}
+	} else {
+		log.Warnf("permission_system.sql not found at %s", permissionSchemaFile)
 	}
 
 	// 执行核心系统种子数据
-	coreSeedFile := "../database/data/core_seed.sql"
+	coreSeedFile := filepath.Join(projectRoot, "database", "data", "core_seed.sql")
 	coreSeedBytes, err := os.ReadFile(coreSeedFile)
 	if err == nil {
 		if err := executeSQLScript(db, string(coreSeedBytes), log); err != nil {
 			log.Warnf("Failed to execute core seed data: %v", err)
 		}
+	} else {
+		log.Warnf("core_seed.sql not found at %s", coreSeedFile)
 	}
 
 	// 执行权限系统种子数据
-	permissionSeedFile := "../database/data/permission_seed.sql"
+	permissionSeedFile := filepath.Join(projectRoot, "database", "data", "permission_seed.sql")
 	permissionSeedBytes, err := os.ReadFile(permissionSeedFile)
 	if err == nil {
 		if err := executeSQLScript(db, string(permissionSeedBytes), log); err != nil {
 			log.Warnf("Failed to execute permission seed data: %v", err)
 		}
+	} else {
+		log.Warnf("permission_seed.sql not found at %s", permissionSeedFile)
 	}
 
 	log.Info("SQLite database initialized successfully")

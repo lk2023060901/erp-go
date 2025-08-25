@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -20,6 +22,46 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// getProjectRoot 获取项目根目录路径
+func getProjectRoot() string {
+	// 获取当前文件的绝对路径
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		// 如果无法获取当前文件路径，使用工作目录
+		wd, err := os.Getwd()
+		if err != nil {
+			return "."
+		}
+		// 从当前工作目录向上查找项目根目录
+		for {
+			if _, err := os.Stat(filepath.Join(wd, "go.mod")); err == nil {
+				return wd
+			}
+			parent := filepath.Dir(wd)
+			if parent == wd {
+				break
+			}
+			wd = parent
+		}
+		return "."
+	}
+	
+	// 从当前文件路径向上查找项目根目录
+	dir := filepath.Dir(filename)
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+	
+	return "."
+}
 
 // TestPermissionSystemIntegration 权限系统集成测试
 func TestPermissionSystemIntegration(t *testing.T) {
@@ -50,7 +92,7 @@ func TestPermissionSystemIntegration(t *testing.T) {
 	permissionUsecase := biz.NewPermissionUsecase(cachedPermissionRepo, logger)
 
 	// 创建Service
-	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
+	permissionService := service.NewPermissionService(permissionUsecase, logger)
 
 	// 创建带有超级管理员权限的测试上下文
 	ctx := context.Background()
@@ -85,29 +127,32 @@ func setupTestDatabase(t *testing.T) (*sql.DB, string, func()) {
 	db, err := sql.Open("sqlite3", dbPath)
 	require.NoError(t, err)
 
+	// 获取项目根路径
+	projectRoot := getProjectRoot()
+
 	// 先手动执行核心系统表结构 SQL
-	coreSchemaSQL, err := os.ReadFile("../../../database/schema/core_system.sql")
+	coreSchemaSQL, err := os.ReadFile(filepath.Join(projectRoot, "database", "schema", "core_system.sql"))
 	require.NoError(t, err)
 
 	_, err = db.Exec(string(coreSchemaSQL))
 	require.NoError(t, err)
 
 	// 执行权限系统表结构 SQL
-	permissionSchemaSQL, err := os.ReadFile("../../../database/schema/permission_system.sql")
+	permissionSchemaSQL, err := os.ReadFile(filepath.Join(projectRoot, "database", "schema", "permission_system.sql"))
 	require.NoError(t, err)
 
 	_, err = db.Exec(string(permissionSchemaSQL))
 	require.NoError(t, err)
 
 	// 执行核心系统种子数据 SQL
-	coreSeedSQL, err := os.ReadFile("../../../database/data/core_seed.sql")
+	coreSeedSQL, err := os.ReadFile(filepath.Join(projectRoot, "database", "data", "core_seed.sql"))
 	require.NoError(t, err)
 
 	_, err = db.Exec(string(coreSeedSQL))
 	require.NoError(t, err)
 
 	// 执行权限系统种子数据 SQL
-	permissionSeedSQL, err := os.ReadFile("../../../database/data/permission_seed.sql")
+	permissionSeedSQL, err := os.ReadFile(filepath.Join(projectRoot, "database", "data", "permission_seed.sql"))
 	require.NoError(t, err)
 
 	_, err = db.Exec(string(permissionSeedSQL))
@@ -149,7 +194,7 @@ func setupTestBaseData(t *testing.T, db *sql.DB) {
 }
 
 // testDocTypeManagement 测试DocType管理
-func testDocTypeManagement(t *testing.T, ctx context.Context, svc *service.FrappePermissionService) {
+func testDocTypeManagement(t *testing.T, ctx context.Context, svc *service.PermissionService) {
 	// 创建DocType
 	createReq := &service.CreateDocTypeRequest{
 		Name:        "TestDocument",
@@ -202,7 +247,7 @@ func testDocTypeManagement(t *testing.T, ctx context.Context, svc *service.Frapp
 }
 
 // testPermissionRuleManagement 测试权限规则管理
-func testPermissionRuleManagement(t *testing.T, ctx context.Context, svc *service.FrappePermissionService, db *sql.DB) {
+func testPermissionRuleManagement(t *testing.T, ctx context.Context, svc *service.PermissionService, db *sql.DB) {
 	// 创建权限规则
 	createReq := &service.CreatePermissionRuleRequest{
 		RoleID:          1,
@@ -265,7 +310,7 @@ func testPermissionRuleManagement(t *testing.T, ctx context.Context, svc *servic
 }
 
 // testUserPermissionManagement 测试用户权限管理
-func testUserPermissionManagement(t *testing.T, ctx context.Context, svc *service.FrappePermissionService, db *sql.DB) {
+func testUserPermissionManagement(t *testing.T, ctx context.Context, svc *service.PermissionService, db *sql.DB) {
 	// 创建用户权限
 	createReq := &service.CreateUserPermissionRequest{
 		UserID:          2,
@@ -325,7 +370,7 @@ func testUserPermissionManagement(t *testing.T, ctx context.Context, svc *servic
 }
 
 // testPermissionChecking 测试权限检查功能
-func testPermissionChecking(t *testing.T, ctx context.Context, svc *service.FrappePermissionService, db *sql.DB) {
+func testPermissionChecking(t *testing.T, ctx context.Context, svc *service.PermissionService, db *sql.DB) {
 	// 首先创建一个权限规则供测试
 	_, err := db.Exec(`
 		INSERT OR REPLACE INTO permission_rules 
@@ -400,7 +445,7 @@ func TestPermissionSystemLoadTest(t *testing.T) {
 	cachedPermissionRepo := data.NewCachedPermissionRepo(permissionRepo, permissionCache, logger)
 
 	permissionUsecase := biz.NewPermissionUsecase(cachedPermissionRepo, logger)
-	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
+	permissionService := service.NewPermissionService(permissionUsecase, logger)
 
 	// 创建带有超级管理员权限的测试上下文
 	ctx := context.Background()
@@ -486,7 +531,7 @@ func BenchmarkPermissionCheck(b *testing.B) {
 	cachedPermissionRepo := data.NewCachedPermissionRepo(permissionRepo, permissionCache, logger)
 
 	permissionUsecase := biz.NewPermissionUsecase(cachedPermissionRepo, logger)
-	permissionService := service.NewFrappePermissionService(permissionUsecase, logger)
+	permissionService := service.NewPermissionService(permissionUsecase, logger)
 
 	ctx := context.Background()
 
@@ -526,8 +571,11 @@ func setupBenchmarkDatabase(b *testing.B) (*sql.DB, string, func()) {
 		b.Fatal(err)
 	}
 
+	// 获取项目根路径
+	projectRoot := getProjectRoot()
+
 	// 尝试使用完整的schema文件，失败则使用基础表创建
-	coreSchemaSQL, err := os.ReadFile("../../../database/schema/core_system.sql")
+	coreSchemaSQL, err := os.ReadFile(filepath.Join(projectRoot, "database", "schema", "core_system.sql"))
 	if err == nil {
 		// 执行完整的core schema
 		_, err = db.Exec(string(coreSchemaSQL))
@@ -536,7 +584,7 @@ func setupBenchmarkDatabase(b *testing.B) (*sql.DB, string, func()) {
 		}
 
 		// 执行权限系统schema
-		permissionSchemaSQL, err := os.ReadFile("../../../database/schema/permission_system.sql")
+		permissionSchemaSQL, err := os.ReadFile(filepath.Join(projectRoot, "database", "schema", "permission_system.sql"))
 		if err == nil {
 			_, err = db.Exec(string(permissionSchemaSQL))
 			if err != nil {

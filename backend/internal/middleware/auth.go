@@ -466,19 +466,19 @@ func (m *AuthMiddleware) checkUserPermission(ctx context.Context, userID int64, 
 	return hasPermission, nil
 }
 
-// checkFrappePermission 检查Frappe风格的多级权限
-func (m *AuthMiddleware) checkFrappePermission(ctx context.Context, userID int64, documentType, action string, permissionLevel int) (bool, error) {
+// checkErpPermission 检查ERP的多级权限
+func (m *AuthMiddleware) checkErpPermission(ctx context.Context, userID int64, documentType, action string, permissionLevel int) (bool, error) {
 	// 从缓存检查
-	cacheKey := fmt.Sprintf("frappe_permission:%d:%s:%s:%d", userID, documentType, action, permissionLevel)
+	cacheKey := fmt.Sprintf("erp_permission:%d:%s:%s:%d", userID, documentType, action, permissionLevel)
 
 	if result, err := m.cache.Get(ctx, cacheKey); err == nil && result != "" {
 		return result == "true", nil
 	}
 
-	// 使用新的Frappe权限系统检查
+	// 使用新的ERP权限系统检查
 	hasPermission, err := m.permissionSvc.CheckPermission(ctx, userID, documentType, action, permissionLevel)
 	if err != nil {
-		return false, fmt.Errorf("check frappe permission error: %w", err)
+		return false, fmt.Errorf("check ERP permission error: %w", err)
 	}
 
 	// 缓存结果30分钟
@@ -494,7 +494,7 @@ func (m *AuthMiddleware) checkFrappePermission(ctx context.Context, userID int64
 // checkDocumentPermission 检查文档级权限
 func (m *AuthMiddleware) checkDocumentPermission(ctx context.Context, userID int64, documentType, action string) (bool, error) {
 	// 文档级权限使用级别0
-	return m.checkFrappePermission(ctx, userID, documentType, action, 0)
+	return m.checkErpPermission(ctx, userID, documentType, action, 0)
 }
 
 // checkFieldPermission 检查字段级权限
@@ -504,7 +504,7 @@ func (m *AuthMiddleware) checkFieldPermission(ctx context.Context, userID int64,
 		return false, fmt.Errorf("invalid permission level for field: %d", permissionLevel)
 	}
 
-	return m.checkFrappePermission(ctx, userID, documentType, action, permissionLevel)
+	return m.checkErpPermission(ctx, userID, documentType, action, permissionLevel)
 }
 
 // getUserPermissionLevel 获取用户的权限级别
@@ -542,7 +542,7 @@ func (m *AuthMiddleware) PermissionMiddleware(requiredDocType string, requiredAc
 			}
 
 			// 检查权限
-			hasPermission, err := m.checkFrappePermission(ctx, userID, requiredDocType, requiredAction, requiredLevel)
+			hasPermission, err := m.checkErpPermission(ctx, userID, requiredDocType, requiredAction, requiredLevel)
 			if err != nil {
 				m.logger.Errorf("permission check failed: %v", err)
 				return nil, errors.Forbidden("PERMISSION_DENIED", "权限检查失败")

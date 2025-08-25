@@ -3,7 +3,7 @@
 # 集成测试运行脚本
 set -e
 
-echo "🚀 启动 Frappe 权限系统集成测试..."
+echo "🚀 启动 ERP 权限系统集成测试..."
 
 # 颜色定义
 RED='\033[0;31m'
@@ -146,7 +146,7 @@ generate_test_report() {
 
 # 主函数
 main() {
-    echo -e "${GREEN}🎯 Frappe 权限系统集成测试套件${NC}"
+    echo -e "${GREEN}🎯 ERP 权限系统集成测试套件${NC}"
     echo "======================================="
     
     # 检查参数

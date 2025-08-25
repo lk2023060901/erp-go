@@ -1,0 +1,45 @@
+/* DocType模板选择器样式 */
+.doctype-templates {
+  padding: 24px;
+}
+
+.doctype-templates .template-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.doctype-templates .template-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.doctype-templates .template-card .ant-card-body {
+  padding: 16px;
+  height: calc(140px - 32px); /* 减去padding */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .doctype-templates .ant-col {
+    span: 12;
+    margin-bottom: 16px;
+  }
+  
+  .doctype-templates .template-card {
+    height: auto;
+    min-height: 120px;
+  }
+}
+
+@media (max-width: 576px) {
+  .doctype-templates {
+    padding: 16px;
+  }
+  
+  .doctype-templates .ant-col {
+    span: 24;
+  }
+}

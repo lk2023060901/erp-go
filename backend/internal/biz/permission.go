@@ -10,7 +10,7 @@ import (
 )
 
 // ================================================================
-// Frappe式权限系统数据模型
+// ERP权限系统数据模型
 // ================================================================
 
 // DocType 文档类型
@@ -753,7 +753,7 @@ func (uc *PermissionUsecase) CheckUserPermission(ctx context.Context, userID int
 	return uc.repo.CheckPermission(ctx, userID, "User", "read", 0)
 }
 
-// CheckPermission 检查Frappe风格的权限
+// CheckPermission 检查ERP权限
 func (uc *PermissionUsecase) CheckPermission(ctx context.Context, userID int64, documentType, action string, permissionLevel int) (bool, error) {
 	return uc.repo.CheckPermission(ctx, userID, documentType, action, permissionLevel)
 }

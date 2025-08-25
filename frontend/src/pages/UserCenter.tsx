@@ -253,15 +253,11 @@ const UserCenter: React.FC = () => {
                 onClick={() => handleNavigate('/roles/create')}
               />
               <QuickAction
-                icon={<EditOutlined />}
-                title="编辑角色"
-                onClick={() => handleNavigate('/roles/edit')}
-              />
-              <QuickAction
                 icon={<ImportOutlined />}
                 title="批量导入"
                 onClick={() => handleNavigate('/roles/import')}
               />
+              <div style={{ width: '100%', minHeight: '36px' }} />
             </CategoryCard>
           </Col>
         </Row>

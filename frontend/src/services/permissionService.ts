@@ -77,34 +77,20 @@ export interface PermissionTreeNode {
 
 /**
  * 获取权限列表
+ * @deprecated 传统权限系统已禁用，请使用ERP权限系统
  */
 export async function getPermissionsList(params?: PermissionsQueryParams): Promise<PermissionsListResponse> {
-  try {
-    const queryParams = {
-      page: 1,
-      size: 100, // 权限通常不会太多，可以一次性加载
-      ...params,
-    };
-    
-    const response = await apiClient.get<PermissionsListResponse>('/permissions', queryParams);
-    return response;
-  } catch (error) {
-    console.error('Get permissions list failed:', error);
-    throw new Error('获取权限列表失败');
-  }
+  console.warn('getPermissionsList is deprecated. Use ERP permission system instead.');
+  throw new Error('传统权限系统已禁用，请使用ERP权限系统');
 }
 
 /**
  * 获取权限树
+ * @deprecated 传统权限系统已禁用，请使用ERP权限系统
  */
 export async function getPermissionTree(): Promise<PermissionTreeNode[]> {
-  try {
-    const response = await apiClient.get<{ tree: PermissionTreeNode[] }>('/permissions/tree');
-    return response.tree || [];
-  } catch (error) {
-    console.error('Get permission tree failed:', error);
-    throw new Error('获取权限树失败');
-  }
+  console.warn('getPermissionTree is deprecated. Use ERP permission system instead.');
+  throw new Error('传统权限系统已禁用，请使用ERP权限系统');
 }
 
 /**
@@ -223,13 +209,9 @@ export function generatePermissionCode(resource: string, action: string): string
 
 /**
  * 格式化权限树为Ant Design Tree组件数据
+ * @deprecated 传统权限系统已禁用，请使用ERP权限系统
  */
 export function formatPermissionTreeForAntd(tree: PermissionTreeNode[], checkedKeys: number[] = []): any[] {
-  return tree.map(node => ({
-    title: `${node.name} (${node.code})`,
-    key: node.id,
-    value: node.id,
-    disabled: !node.is_enabled,
-    children: node.children ? formatPermissionTreeForAntd(node.children, checkedKeys) : undefined,
-  }));
+  console.warn('formatPermissionTreeForAntd is deprecated. Use ERP permission system instead.');
+  return [];
 }

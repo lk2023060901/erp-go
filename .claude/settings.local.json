@@ -77,7 +77,6 @@
       "Bash(make:*)",
       "Bash(npm run type-check:*)",
       "Bash(open \"http://localhost:58000\")",
-      "WebFetch(domain:docs.frappe.io)",
       "Bash(go test:*)",
       "Bash(go doc:*)",
       "Bash(wire gen:*)",
@@ -85,12 +84,34 @@
       "Bash(COMPOSE_PROFILES=dev docker-compose config)",
       "Bash(COMPOSE_PROFILES=test docker-compose config)",
       "Bash(COMPOSE_PROFILES=ci docker-compose config)",
-      "Bash(COMPOSE_PROFILES=prod docker-compose config)"
+      "Bash(COMPOSE_PROFILES=prod docker-compose config)",
+      "Bash(go vet:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(go fmt:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run lint)",
+      "Bash(npm ls:*)",
+      "Bash(open \"http://localhost:58002\")",
+      "Bash(open /Volumes/work/coding/golang/erp-go/test-api.html)",
+      "Bash(./erp-server)",
+      "Bash(open \"http://localhost:58003\")",
+      "Read(//Volumes/data/github/python/erpnext/erpnext/**)",
+      "Read(//Volumes/data/github/python/erpnext/erpnext/**)",
+      "Read(//Volumes/data/github/python/erpnext/erpnext/**)",
+      "Read(//Volumes/data/github/python/frappe/**)",
+      "Read(//Volumes/data/github/python/frappe/**)",
+      "Read(//Volumes/data/github/python/frappe/**)",
+      "WebSearch",
+      "WebFetch(domain:docs.frappe.io)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": [],
     "additionalDirectories": [
-      "/Users/liukai/go/bin"
+      "/Users/liukai/go/bin",
+      "/Volumes/work/coding/database",
+      "/Volumes/work/coding/golang"
     ]
   }
 }

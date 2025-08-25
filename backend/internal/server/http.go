@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,7 +26,7 @@ type HTTPServer struct {
 	authService *service.AuthService
 	userService *service.UserService
 	roleService *service.RoleService
-	// permissionService *service.PermissionService  // Temporarily disabled - using Frappe permission system
+	permissionService *service.PermissionService
 	organizationService *service.OrganizationService
 	systemService       *service.SystemService
 	jwtSecret           string
@@ -39,7 +40,7 @@ func NewHTTPServer(
 	authService *service.AuthService,
 	userService *service.UserService,
 	roleService *service.RoleService,
-	// permissionService *service.PermissionService,  // Temporarily disabled
+	permissionService *service.PermissionService,
 	organizationService *service.OrganizationService,
 	systemService *service.SystemService,
 	logger log.Logger,
@@ -70,7 +71,7 @@ func NewHTTPServer(
 		authService: authService,
 		userService: userService,
 		roleService: roleService,
-		// permissionService:   permissionService,  // Temporarily disabled
+		permissionService:   permissionService,
 		organizationService: organizationService,
 		systemService:       systemService,
 		jwtSecret:           jwtSecret,
@@ -128,18 +129,18 @@ func (s *HTTPServer) registerRoutes() {
 	roles.HandleFunc("/{id:[0-9]+}/permissions", s.handleAssignRolePermissions).Methods("POST", "OPTIONS")
 	roles.HandleFunc("/enabled", s.handleGetEnabledRoles).Methods("GET", "OPTIONS")
 
-	// 权限管理路由
-	permissions := authenticated.PathPrefix("/permissions").Subrouter()
-	permissions.HandleFunc("", s.handleListPermissions).Methods("GET", "OPTIONS")
-	permissions.HandleFunc("", s.handleCreatePermission).Methods("POST", "OPTIONS")
-	permissions.HandleFunc("/{id:[0-9]+}", s.handleGetPermission).Methods("GET", "OPTIONS")
-	permissions.HandleFunc("/{id:[0-9]+}", s.handleUpdatePermission).Methods("PUT", "OPTIONS")
-	permissions.HandleFunc("/{id:[0-9]+}", s.handleDeletePermission).Methods("DELETE", "OPTIONS")
-	permissions.HandleFunc("/tree", s.handleGetPermissionTree).Methods("GET", "OPTIONS")
-	permissions.HandleFunc("/modules", s.handleGetPermissionModules).Methods("GET", "OPTIONS")
-	permissions.HandleFunc("/sync-api", s.handleSyncApiPermissions).Methods("POST", "OPTIONS")
-	permissions.HandleFunc("/menus", s.handleGetUserMenus).Methods("GET", "OPTIONS")
-	permissions.HandleFunc("/check", s.handleCheckUserPermission).Methods("POST", "OPTIONS")
+	// 传统权限管理路由已禁用 - 使用ERP权限系统
+	// permissions := authenticated.PathPrefix("/permissions").Subrouter()
+	// permissions.HandleFunc("", s.handleListPermissions).Methods("GET", "OPTIONS")
+	// permissions.HandleFunc("", s.handleCreatePermission).Methods("POST", "OPTIONS")
+	// permissions.HandleFunc("/{id:[0-9]+}", s.handleGetPermission).Methods("GET", "OPTIONS")
+	// permissions.HandleFunc("/{id:[0-9]+}", s.handleUpdatePermission).Methods("PUT", "OPTIONS")
+	// permissions.HandleFunc("/{id:[0-9]+}", s.handleDeletePermission).Methods("DELETE", "OPTIONS")
+	// permissions.HandleFunc("/tree", s.handleGetPermissionTree).Methods("GET", "OPTIONS")
+	// permissions.HandleFunc("/modules", s.handleGetPermissionModules).Methods("GET", "OPTIONS")
+	// permissions.HandleFunc("/sync-api", s.handleSyncApiPermissions).Methods("POST", "OPTIONS")
+	// permissions.HandleFunc("/menus", s.handleGetUserMenus).Methods("GET", "OPTIONS")
+	// permissions.HandleFunc("/check", s.handleCheckUserPermission).Methods("POST", "OPTIONS")
 
 	// 组织管理路由
 	orgs := authenticated.PathPrefix("/organizations").Subrouter()
@@ -160,6 +161,28 @@ func (s *HTTPServer) registerRoutes() {
 	system.HandleFunc("/cleanup-logs", s.handleCleanupLogs).Methods("POST", "OPTIONS")
 	system.HandleFunc("/info", s.handleGetSystemInfo).Methods("GET", "OPTIONS")
 	system.HandleFunc("/dashboard", s.handleGetDashboardData).Methods("GET", "OPTIONS")
+
+	// DocType管理路由（标准系统）
+	docTypes := authenticated.PathPrefix("/doctypes").Subrouter()
+	docTypes.HandleFunc("", s.handleGetDocTypeList).Methods("GET", "OPTIONS")
+	docTypes.HandleFunc("/modules", s.handleGetDocTypeModules).Methods("GET", "OPTIONS")
+	docTypes.HandleFunc("", s.handleCreateDocTypeManagement).Methods("POST", "OPTIONS")
+	docTypes.HandleFunc("/{id:[0-9]+}", s.handleGetDocTypeManagement).Methods("GET", "OPTIONS")
+	docTypes.HandleFunc("/{id:[0-9]+}", s.handleUpdateDocTypeManagement).Methods("PUT", "OPTIONS")
+	docTypes.HandleFunc("/{id:[0-9]+}", s.handleDeleteDocTypeManagement).Methods("DELETE", "OPTIONS")
+
+	// ERP文档权限系统路由
+	erpPermissions := authenticated.PathPrefix("/erp-permissions").Subrouter()
+	erpPermissions.HandleFunc("/doctypes", s.handleGetDocTypes).Methods("GET", "OPTIONS")
+	erpPermissions.HandleFunc("/doctypes", s.handleCreateDocType).Methods("POST", "OPTIONS")
+	erpPermissions.HandleFunc("/doctypes/{name}", s.handleGetDocType).Methods("GET", "OPTIONS")
+	erpPermissions.HandleFunc("/doctypes/{name}", s.handleUpdateDocType).Methods("PUT", "OPTIONS")
+	erpPermissions.HandleFunc("/doctypes/{name}", s.handleDeleteDocType).Methods("DELETE", "OPTIONS")
+	erpPermissions.HandleFunc("/permission-rules", s.handleGetPermissionRules).Methods("GET", "OPTIONS")
+	erpPermissions.HandleFunc("/permission-rules", s.handleCreatePermissionRule).Methods("POST", "OPTIONS")
+	erpPermissions.HandleFunc("/permission-rules/{id:[0-9]+}", s.handleGetPermissionRule).Methods("GET", "OPTIONS")
+	erpPermissions.HandleFunc("/permission-rules/{id:[0-9]+}", s.handleUpdatePermissionRule).Methods("PUT", "OPTIONS")
+	erpPermissions.HandleFunc("/permission-rules/{id:[0-9]+}", s.handleDeletePermissionRule).Methods("DELETE", "OPTIONS")
 
 	// 健康检查
 	router.HandleFunc("/health", s.handleHealth).Methods("GET")
@@ -195,6 +218,266 @@ func (s *HTTPServer) sendResponse(w http.ResponseWriter, status int, data interf
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(response)
+}
+
+// ========== ERP权限系统处理函数 ==========
+
+// DocType相关
+func (s *HTTPServer) handleGetDocTypes(w http.ResponseWriter, r *http.Request) {
+	// 模拟DocType数据
+	docTypes := []map[string]interface{}{
+		{
+			"id":                     1,
+			"name":                   "User",
+			"label":                  "用户",
+			"module":                 "Core",
+			"description":            "系统用户信息",
+			"is_submittable":         false,
+			"is_child_table":         false,
+			"has_workflow":           false,
+			"track_changes":          true,
+			"applies_to_all_users":   true,
+			"max_attachments":        10,
+			"naming_rule":            "field:username",
+			"title_field":            "full_name",
+			"search_fields":          []string{"username", "email", "full_name"},
+			"sort_field":             "created_at",
+			"sort_order":             "DESC",
+			"version":                1,
+			"created_at":             "2024-01-01T00:00:00Z",
+			"updated_at":             "2024-01-01T00:00:00Z",
+		},
+		{
+			"id":                     2,
+			"name":                   "Role",
+			"label":                  "角色",
+			"module":                 "Core",
+			"description":            "系统角色信息",
+			"is_submittable":         false,
+			"is_child_table":         false,
+			"has_workflow":           false,
+			"track_changes":          true,
+			"applies_to_all_users":   true,
+			"max_attachments":        5,
+			"naming_rule":            "field:name",
+			"title_field":            "name",
+			"search_fields":          []string{"name", "description"},
+			"sort_field":             "sort_order",
+			"sort_order":             "ASC",
+			"version":                1,
+			"created_at":             "2024-01-01T00:00:00Z",
+			"updated_at":             "2024-01-01T00:00:00Z",
+		},
+		{
+			"id":                     3,
+			"name":                   "Permission",
+			"label":                  "权限",
+			"module":                 "Core",
+			"description":            "系统权限信息",
+			"is_submittable":         false,
+			"is_child_table":         false,
+			"has_workflow":           false,
+			"track_changes":          true,
+			"applies_to_all_users":   true,
+			"max_attachments":        0,
+			"naming_rule":            "field:name",
+			"title_field":            "name",
+			"search_fields":          []string{"name", "resource", "action"},
+			"sort_field":             "created_at",
+			"sort_order":             "DESC",
+			"version":                1,
+			"created_at":             "2024-01-01T00:00:00Z",
+			"updated_at":             "2024-01-01T00:00:00Z",
+		},
+		{
+			"id":                     4,
+			"name":                   "Organization",
+			"label":                  "组织",
+			"module":                 "Core",
+			"description":            "组织架构信息",
+			"is_submittable":         false,
+			"is_child_table":         false,
+			"has_workflow":           false,
+			"track_changes":          true,
+			"applies_to_all_users":   true,
+			"max_attachments":        20,
+			"naming_rule":            "field:name",
+			"title_field":            "name",
+			"search_fields":          []string{"name", "code"},
+			"sort_field":             "sort_order",
+			"sort_order":             "ASC",
+			"version":                1,
+			"created_at":             "2024-01-01T00:00:00Z",
+			"updated_at":             "2024-01-01T00:00:00Z",
+		},
+	}
+
+	// 分页参数处理
+	page := 1
+	size := 10
+	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+	if sizeStr := r.URL.Query().Get("size"); sizeStr != "" {
+		if s, err := strconv.Atoi(sizeStr); err == nil && s > 0 && s <= 100 {
+			size = s
+		}
+	}
+
+	// 模块过滤
+	moduleFilter := r.URL.Query().Get("module")
+	filteredDocTypes := docTypes
+	if moduleFilter != "" {
+		var filtered []map[string]interface{}
+		for _, dt := range docTypes {
+			if dt["module"] == moduleFilter {
+				filtered = append(filtered, dt)
+			}
+		}
+		filteredDocTypes = filtered
+	}
+
+	responseData := map[string]interface{}{
+		"doc_types": filteredDocTypes,
+		"total":     len(filteredDocTypes),
+		"page":      page,
+		"size":      size,
+	}
+
+	s.sendResponse(w, http.StatusOK, responseData)
+}
+
+func (s *HTTPServer) handleCreateDocType(w http.ResponseWriter, r *http.Request) {
+	s.sendResponse(w, http.StatusNotImplemented, map[string]string{"message": "Not implemented yet"})
+}
+
+func (s *HTTPServer) handleGetDocType(w http.ResponseWriter, r *http.Request) {
+	s.sendResponse(w, http.StatusNotImplemented, map[string]string{"message": "Not implemented yet"})
+}
+
+func (s *HTTPServer) handleUpdateDocType(w http.ResponseWriter, r *http.Request) {
+	s.sendResponse(w, http.StatusNotImplemented, map[string]string{"message": "Not implemented yet"})
+}
+
+func (s *HTTPServer) handleDeleteDocType(w http.ResponseWriter, r *http.Request) {
+	s.sendResponse(w, http.StatusNotImplemented, map[string]string{"message": "Not implemented yet"})
+}
+
+// PermissionRule相关
+func (s *HTTPServer) handleGetPermissionRules(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	
+	// 解析查询参数
+	roleIDStr := r.URL.Query().Get("role_id")
+	docType := r.URL.Query().Get("doc_type")
+	
+	var roleID int64
+	var err error
+	if roleIDStr != "" {
+		roleID, err = strconv.ParseInt(roleIDStr, 10, 64)
+		if err != nil {
+			s.sendError(w, errors.BadRequest("INVALID_PARAMETER", "角色ID无效"))
+			return
+		}
+	}
+	
+	// 构造请求
+	req := &service.ListPermissionRulesRequest{
+		RoleID:  roleID,
+		DocType: docType,
+	}
+	
+	// 调用权限服务获取权限规则列表
+	response, err := s.permissionService.ListPermissionRules(ctx, req)
+	if err != nil {
+		s.sendError(w, err)
+		return
+	}
+	
+	s.sendResponse(w, http.StatusOK, response)
+}
+
+func (s *HTTPServer) handleCreatePermissionRule(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	
+	// 解析请求体
+	var req service.CreatePermissionRuleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.sendError(w, errors.BadRequest("INVALID_JSON", "请求数据格式不正确"))
+		return
+	}
+	
+	// 调用权限服务创建权限规则
+	rule, err := s.permissionService.CreatePermissionRule(ctx, &req)
+	if err != nil {
+		s.sendError(w, err)
+		return
+	}
+	
+	s.sendResponse(w, http.StatusCreated, rule)
+}
+
+func (s *HTTPServer) handleGetPermissionRule(w http.ResponseWriter, r *http.Request) {
+	s.sendResponse(w, http.StatusNotImplemented, map[string]string{"message": "Not implemented yet"})
+}
+
+func (s *HTTPServer) handleUpdatePermissionRule(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	
+	// 从URL路径中获取权限规则ID
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		s.sendError(w, errors.BadRequest("INVALID_PARAMETER", "权限规则ID无效"))
+		return
+	}
+	
+	// 解析请求体
+	var reqBody service.CreatePermissionRuleRequest
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		s.sendError(w, errors.BadRequest("INVALID_JSON", "请求数据格式不正确"))
+		return
+	}
+	
+	// 构造更新请求
+	req := service.UpdatePermissionRuleRequest{
+		ID: id,
+		CreatePermissionRuleRequest: reqBody,
+	}
+	
+	// 调用权限服务更新权限规则
+	rule, err := s.permissionService.UpdatePermissionRule(ctx, &req)
+	if err != nil {
+		s.sendError(w, err)
+		return
+	}
+	
+	s.sendResponse(w, http.StatusOK, rule)
+}
+
+func (s *HTTPServer) handleDeletePermissionRule(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	
+	// 从URL路径中获取权限规则ID
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		s.sendError(w, errors.BadRequest("INVALID_PARAMETER", "权限规则ID无效"))
+		return
+	}
+	
+	// 调用权限服务删除权限规则
+	err = s.permissionService.DeletePermissionRule(ctx, id)
+	if err != nil {
+		s.sendError(w, err)
+		return
+	}
+	
+	s.sendResponse(w, http.StatusOK, map[string]string{"message": "权限规则删除成功"})
 }
 
 // 发送错误响应
@@ -440,6 +723,262 @@ func (s *HTTPServer) handleChangePassword(w http.ResponseWriter, r *http.Request
 
 	s.sendResponse(w, http.StatusOK, map[string]string{
 		"message": "密码修改成功",
+	})
+}
+
+// ========== DocType管理系统处理函数 ==========
+
+// handleGetDocTypeList 获取DocType列表（用于DocType管理页面）
+func (s *HTTPServer) handleGetDocTypeList(w http.ResponseWriter, r *http.Request) {
+	// 解析查询参数
+	page := 1
+	pageSize := 20
+	sortBy := "created_at"
+	sortOrder := "desc"
+	
+	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+	if sizeStr := r.URL.Query().Get("page_size"); sizeStr != "" {
+		if s, err := strconv.Atoi(sizeStr); err == nil && s > 0 && s <= 100 {
+			pageSize = s
+		}
+	}
+	if sort := r.URL.Query().Get("sort_by"); sort != "" {
+		sortBy = sort
+	}
+	if order := r.URL.Query().Get("sort_order"); order != "" {
+		sortOrder = order
+	}
+
+	// 模拟DocType数据
+	docTypes := []map[string]interface{}{
+		{
+			"id":           1,
+			"name":         "User",
+			"label":        "用户",
+			"module":       "Core",
+			"description":  "系统用户管理",
+			"is_enabled":   true,
+			"is_custom":    false,
+			"has_workflow": false,
+			"track_changes": true,
+			"version":      1,
+			"created_at":   "2024-01-01T00:00:00Z",
+			"updated_at":   "2024-01-01T00:00:00Z",
+		},
+		{
+			"id":           2,
+			"name":         "Role",
+			"label":        "角色",
+			"module":       "Core", 
+			"description":  "系统角色管理",
+			"is_enabled":   true,
+			"is_custom":    false,
+			"has_workflow": false,
+			"track_changes": false,
+			"version":      1,
+			"created_at":   "2024-01-02T00:00:00Z",
+			"updated_at":   "2024-01-02T00:00:00Z",
+		},
+		{
+			"id":           3,
+			"name":         "Permission",
+			"label":        "权限",
+			"module":       "Core",
+			"description":  "系统权限管理",
+			"is_enabled":   true,
+			"is_custom":    false,
+			"has_workflow": true,
+			"track_changes": true,
+			"version":      1,
+			"created_at":   "2024-01-03T00:00:00Z",
+			"updated_at":   "2024-01-03T00:00:00Z",
+		},
+		{
+			"id":           4,
+			"name":         "Organization",
+			"label":        "组织",
+			"module":       "Core",
+			"description":  "组织架构管理",
+			"is_enabled":   true,
+			"is_custom":    false,
+			"has_workflow": false,
+			"track_changes": true,
+			"version":      1,
+			"created_at":   "2024-01-04T00:00:00Z",
+			"updated_at":   "2024-01-04T00:00:00Z",
+		},
+		{
+			"id":           5,
+			"name":         "Product",
+			"label":        "产品",
+			"module":       "Inventory",
+			"description":  "产品信息管理",
+			"is_enabled":   true,
+			"is_custom":    true,
+			"has_workflow": true,
+			"track_changes": false,
+			"version":      1,
+			"created_at":   "2024-01-05T00:00:00Z",
+			"updated_at":   "2024-01-05T00:00:00Z",
+		},
+		{
+			"id":           6,
+			"name":         "Customer",
+			"label":        "客户",
+			"module":       "CRM",
+			"description":  "客户关系管理",
+			"is_enabled":   true,
+			"is_custom":    true,
+			"has_workflow": false,
+			"track_changes": false,
+			"version":      1,
+			"created_at":   "2024-01-06T00:00:00Z",
+			"updated_at":   "2024-01-06T00:00:00Z",
+		},
+	}
+
+	s.sendResponse(w, http.StatusOK, map[string]interface{}{
+		"items":      docTypes,
+		"total":      len(docTypes),
+		"page":       page,
+		"page_size":  pageSize,
+		"sort_by":    sortBy,
+		"sort_order": sortOrder,
+	})
+}
+
+// handleGetDocTypeModules 获取DocType模块列表
+func (s *HTTPServer) handleGetDocTypeModules(w http.ResponseWriter, r *http.Request) {
+	modules := []map[string]interface{}{
+		{
+			"name":        "Core",
+			"label":       "核心模块",
+			"description": "系统核心功能模块",
+			"count":       4,
+		},
+		{
+			"name":        "Inventory",
+			"label":       "库存管理",
+			"description": "产品和库存管理模块",
+			"count":       1,
+		},
+		{
+			"name":        "CRM",
+			"label":       "客户关系管理",
+			"description": "客户和销售管理模块",
+			"count":       1,
+		},
+	}
+
+	s.sendResponse(w, http.StatusOK, map[string]interface{}{
+		"modules": modules,
+		"total":   len(modules),
+	})
+}
+
+// handleCreateDocTypeManagement 创建DocType
+func (s *HTTPServer) handleCreateDocTypeManagement(w http.ResponseWriter, r *http.Request) {
+	s.sendResponse(w, http.StatusCreated, map[string]interface{}{
+		"doctype": map[string]interface{}{
+			"id":          7,
+			"name":        "NewDocType",
+			"label":       "新文档类型",
+			"module":      "Custom",
+			"description": "用户创建的新文档类型",
+			"is_enabled":  true,
+			"is_custom":   true,
+			"version":     1,
+			"created_at":  time.Now().Format(time.RFC3339),
+			"updated_at":  time.Now().Format(time.RFC3339),
+		},
+	})
+}
+
+// handleGetDocTypeManagement 获取单个DocType
+func (s *HTTPServer) handleGetDocTypeManagement(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		s.sendResponse(w, http.StatusBadRequest, map[string]interface{}{
+			"success": false,
+			"error": map[string]interface{}{
+				"code":    "INVALID_PARAMETER",
+				"message": "无效的DocType ID",
+			},
+		})
+		return
+	}
+
+	docType := map[string]interface{}{
+		"id":          id,
+		"name":        "User",
+		"label":       "用户",
+		"module":      "Core",
+		"description": "系统用户管理",
+		"is_enabled":  true,
+		"is_custom":   false,
+		"version":     1,
+		"created_at":  "2024-01-01T00:00:00Z",
+		"updated_at":  "2024-01-01T00:00:00Z",
+	}
+
+	s.sendResponse(w, http.StatusOK, map[string]interface{}{
+		"doctype": docType,
+	})
+}
+
+// handleUpdateDocTypeManagement 更新DocType
+func (s *HTTPServer) handleUpdateDocTypeManagement(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		s.sendResponse(w, http.StatusBadRequest, map[string]interface{}{
+			"success": false,
+			"error": map[string]interface{}{
+				"code":    "INVALID_PARAMETER",
+				"message": "无效的DocType ID",
+			},
+		})
+		return
+	}
+
+	s.sendResponse(w, http.StatusOK, map[string]interface{}{
+		"doctype": map[string]interface{}{
+			"id":         id,
+			"name":       "UpdatedDocType",
+			"label":      "更新后的文档类型",
+			"updated_at": time.Now().Format(time.RFC3339),
+		},
+	})
+}
+
+// handleDeleteDocTypeManagement 删除DocType
+func (s *HTTPServer) handleDeleteDocTypeManagement(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		s.sendResponse(w, http.StatusBadRequest, map[string]interface{}{
+			"success": false,
+			"error": map[string]interface{}{
+				"code":    "INVALID_PARAMETER",
+				"message": "无效的DocType ID",
+			},
+		})
+		return
+	}
+
+	s.sendResponse(w, http.StatusOK, map[string]interface{}{
+		"message": fmt.Sprintf("DocType %d 已删除", id),
 	})
 }
 

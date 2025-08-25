@@ -218,6 +218,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
               initialData={formData}
               onDataChange={(data) => setFormData(prev => ({ ...prev, ...data }))}
               form={form}
+              userId={user?.id} // 传递用户ID用于编辑模式加载现有权限
             />
           </div>
         </Form>

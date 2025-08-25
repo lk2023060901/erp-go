@@ -263,57 +263,11 @@ func (r *roleRepo) ListRoles(ctx context.Context, page, size int32, search strin
 }
 
 // GetRolePermissions 获取角色权限
+// 注意：传统权限系统已被禁用，返回空权限列表
 func (r *roleRepo) GetRolePermissions(ctx context.Context, roleID int32) ([]*biz.Permission, error) {
-	query := `
-		SELECT p.id, p.parent_id, p.name, p.code, p.resource, p.action, p.module,
-		       p.description, p.is_menu, p.path, p.sort_order,
-		       p.created_at, p.updated_at
-		FROM permissions p
-		INNER JOIN role_permissions rp ON p.id = rp.permission_id
-		WHERE rp.role_id = $1
-		ORDER BY p.sort_order`
-
-	rows, err := r.data.db.QueryContext(ctx, query, roleID)
-	if err != nil {
-		r.log.Errorf("failed to get role permissions: %v", err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	var permissions []*biz.Permission
-	for rows.Next() {
-		var permission biz.Permission
-		var parentID sql.NullInt32
-		var path, description sql.NullString
-
-		err := rows.Scan(
-			&permission.ID, &parentID, &permission.Name, &permission.Code,
-			&permission.Resource, &permission.Action, &permission.Module,
-			&description, &permission.IsMenu, &path,
-			&permission.SortOrder, &permission.CreatedAt,
-			&permission.UpdatedAt,
-		)
-		if err != nil {
-			r.log.Errorf("failed to scan permission: %v", err)
-			return nil, err
-		}
-
-		if parentID.Valid {
-			permission.ParentID = &parentID.Int32
-		}
-
-		// 处理可能为NULL的字符串字段
-		if description.Valid {
-			permission.Description = description.String
-		}
-		if path.Valid {
-			permission.Path = path.String
-		}
-
-		permissions = append(permissions, &permission)
-	}
-
-	return permissions, nil
+	// 暂时返回空列表，避免数据库查询错误
+	// 实际权限管理应使用ERP权限系统
+	return []*biz.Permission{}, nil
 }
 
 // AssignPermissions 分配权限

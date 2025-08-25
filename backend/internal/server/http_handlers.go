@@ -355,20 +355,25 @@ func (s *HTTPServer) handleAssignRolePermissions(w http.ResponseWriter, r *http.
 
 // handleGetEnabledRoles 获取启用的角色列表
 func (s *HTTPServer) handleGetEnabledRoles(w http.ResponseWriter, r *http.Request) {
-	resp, err := s.roleService.GetEnabledRoles(r.Context())
+	roles, err := s.roleService.GetEnabledRoles(r.Context())
 	if err != nil {
 		s.sendError(w, err)
 		return
 	}
 
-	s.sendResponse(w, http.StatusOK, resp)
+	// 包装响应格式以匹配前端期望
+	response := map[string]interface{}{
+		"roles": roles,
+	}
+
+	s.sendResponse(w, http.StatusOK, response)
 }
 
 // ========== 权限管理处理器 ==========
 
-// handleListPermissions 获取权限列表 - Temporarily disabled (using Frappe permission system)
+// handleListPermissions 获取权限列表 - Temporarily disabled (using ERP permission system)
 func (s *HTTPServer) handleListPermissions(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*
 		resp, err := s.permissionService.ListPermissions(r.Context())
@@ -381,9 +386,9 @@ func (s *HTTPServer) handleListPermissions(w http.ResponseWriter, r *http.Reques
 	*/
 }
 
-// handleCreatePermission 创建权限 - Temporarily disabled (using Frappe permission system)
+// handleCreatePermission 创建权限 - Temporarily disabled (using ERP permission system)
 func (s *HTTPServer) handleCreatePermission(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 
 	/*var req service.CreatePermissionRequest
@@ -404,7 +409,7 @@ func (s *HTTPServer) handleCreatePermission(w http.ResponseWriter, r *http.Reque
 
 // handleGetPermission 获取权限详情 - Temporarily disabled
 func (s *HTTPServer) handleGetPermission(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 32)
@@ -423,9 +428,9 @@ func (s *HTTPServer) handleGetPermission(w http.ResponseWriter, r *http.Request)
 	*/
 }
 
-// handleUpdatePermission 更新权限 - Temporarily disabled (using Frappe permission system)
+// handleUpdatePermission 更新权限 - Temporarily disabled (using ERP permission system)
 func (s *HTTPServer) handleUpdatePermission(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 
 	/*vars := mux.Vars(r)
@@ -454,7 +459,7 @@ func (s *HTTPServer) handleUpdatePermission(w http.ResponseWriter, r *http.Reque
 
 // handleDeletePermission 删除权限 - Temporarily disabled
 func (s *HTTPServer) handleDeletePermission(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 32)
@@ -476,7 +481,7 @@ func (s *HTTPServer) handleDeletePermission(w http.ResponseWriter, r *http.Reque
 
 // handleGetPermissionTree 获取权限树 - Temporarily disabled
 func (s *HTTPServer) handleGetPermissionTree(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*resp, err := s.permissionService.GetPermissionTree(r.Context())
 	if err != nil {
@@ -493,7 +498,7 @@ func (s *HTTPServer) handleGetPermissionTree(w http.ResponseWriter, r *http.Requ
 
 // handleGetPermissionModules 获取权限模块列表 - Temporarily disabled
 func (s *HTTPServer) handleGetPermissionModules(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*modules, err := s.permissionService.GetModules(r.Context())
 	if err != nil {
@@ -510,7 +515,7 @@ func (s *HTTPServer) handleGetPermissionModules(w http.ResponseWriter, r *http.R
 
 // handleSyncApiPermissions 同步API权限 - Temporarily disabled
 func (s *HTTPServer) handleSyncApiPermissions(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*result, err := s.permissionService.SyncApiPermissions(r.Context())
 	if err != nil {
@@ -524,7 +529,7 @@ func (s *HTTPServer) handleSyncApiPermissions(w http.ResponseWriter, r *http.Req
 
 // handleGetUserMenus 获取用户菜单 - Temporarily disabled
 func (s *HTTPServer) handleGetUserMenus(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*resp, err := s.permissionService.GetUserMenus(r.Context())
 	if err != nil {
@@ -538,7 +543,7 @@ func (s *HTTPServer) handleGetUserMenus(w http.ResponseWriter, r *http.Request) 
 
 // handleCheckUserPermission 检查用户权限 - Temporarily disabled
 func (s *HTTPServer) handleCheckUserPermission(w http.ResponseWriter, r *http.Request) {
-	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use Frappe permission system."))
+	s.sendError(w, errors.BadRequest("NOT_IMPLEMENTED", "Old permission system disabled. Use ERP permission system."))
 	return
 	/*var req struct {
 		PermissionCode string `json:"permission_code"`

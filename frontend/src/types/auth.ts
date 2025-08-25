@@ -26,16 +26,24 @@ export interface User {
 export interface Role {
   id: number;
   name: string;
-  code: string;
   description?: string;
   is_system_role: boolean;
   is_enabled: boolean;
   sort_order: number;
+  
+  // 新增字段
+  home_page?: string; // 角色默认主页
+  default_route?: string; // 默认路由
+  restrict_to_domain?: string; // 域限制
+  is_custom: boolean; // 是否为自定义角色
+  desk_access: boolean; // 桌面访问权限
+  require_two_factor: boolean; // 强制双因子认证
+  
   created_at: string;
   updated_at: string;
 }
 
-// 权限信息类型
+// 权限信息类型（传统RBAC模式，保留兼容性）
 export interface Permission {
   id: number;
   parent_id?: number;
@@ -57,6 +65,105 @@ export interface Permission {
   is_enabled: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// ========== ERP权限系统类型定义 ==========
+
+// DocType类型
+export interface DocType {
+  id: number;
+  name: string;
+  label: string;
+  module: string;
+  description?: string;
+  is_submittable: boolean;
+  is_child_table: boolean;
+  has_workflow: boolean;
+  track_changes: boolean;
+  applies_to_all_users: boolean;
+  max_attachments: number;
+  permissions?: string; // JSON格式的权限设置
+  naming_rule?: string;
+  title_field?: string;
+  search_fields?: string; // JSON数组
+  sort_field?: string;
+  sort_order?: 'ASC' | 'DESC';
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// 权限规则类型
+export interface PermissionRule {
+  id: number;
+  role_id: number;
+  doc_type: string; // 后端字段名
+  document_type?: string; // 前端兼容性字段
+  permission_level: number; // 0=文档级, 1-10=字段级
+  
+  // 13种权限类型
+  read: boolean;
+  write: boolean;
+  create: boolean;
+  delete: boolean;
+  submit: boolean;
+  cancel: boolean;
+  amend: boolean;
+  print: boolean;
+  email: boolean;
+  import: boolean;
+  export: boolean;
+  share: boolean;
+  report: boolean;
+  set_user_permissions: boolean;
+  
+  // 条件设置
+  if_owner: boolean;
+  match?: string;
+  select_condition?: string;
+  delete_condition?: string;
+  amend_condition?: string;
+  
+  created_at: string;
+  updated_at: string;
+}
+
+// 用户权限类型
+export interface UserPermission {
+  id: number;
+  user_id: number;
+  doc_type: string;
+  doc_name?: string; // 特定记录权限
+  permission_value: string;
+  applicable_for?: string; // 适用于哪个DocType
+  hide_descendants: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// 字段权限级别类型
+export interface FieldPermissionLevel {
+  id: number;
+  document_type: string;
+  field_name: string;
+  field_label?: string;
+  permission_level: number;
+  field_type?: string;
+  is_mandatory: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// 文档工作流状态类型
+export interface DocumentWorkflowState {
+  id: number;
+  document_type: string;
+  document_name?: string;
+  workflow_state: string;
+  workflow_action?: string;
+  created_at: string;
+  created_by: number;
 }
 
 // 组织信息类型
@@ -147,7 +254,7 @@ export interface AuthState {
   error: string | null;
 }
 
-// 权限检查选项类型
+// 权限检查选项类型（传统RBAC模式）
 export interface PermissionCheckOptions {
   // 需要的权限列表（任意一个满足即可）
   permissions?: string[];
@@ -159,6 +266,66 @@ export interface PermissionCheckOptions {
   skipSuperAdmin?: boolean;
   // 自定义检查函数
   customCheck?: (user: User, permissions: string[], roles: Role[]) => boolean;
+}
+
+// ERP权限检查选项类型
+export interface ErpPermissionCheckOptions {
+  user_id: number;
+  doc_type: string;
+  permission: 'read' | 'write' | 'create' | 'delete' | 'submit' | 'cancel' | 
+              'amend' | 'print' | 'email' | 'import' | 'export' | 'share' | 'report';
+  doc_id?: number;
+  permission_level?: number; // 0=文档级, 1-10=字段级
+}
+
+// 权限检查响应类型
+export interface PermissionCheckResponse {
+  has_permission: boolean;
+  reason?: string;
+}
+
+// 用户权限级别响应类型
+export interface UserPermissionLevelResponse {
+  user_id: number;
+  doc_type: string;
+  permission_level: number;
+  accessible_fields: string[];
+}
+
+// 增强用户权限类型
+export interface EnhancedUserPermission {
+  user_id: number;
+  doc_type: string;
+  doc_name?: string;
+  permission_value: string;
+  applicable_for?: string;
+  effective_permissions: {
+    read: boolean;
+    write: boolean;
+    create: boolean;
+    delete: boolean;
+    submit: boolean;
+    cancel: boolean;
+    amend: boolean;
+    print: boolean;
+    email: boolean;
+    import: boolean;
+    export: boolean;
+    share: boolean;
+    report: boolean;
+  };
+}
+
+// 字段权限响应类型
+export interface FieldPermissionResponse {
+  accessible_fields: Array<{
+    field_name: string;
+    field_label: string;
+    permission_level: number;
+    can_read: boolean;
+    can_write: boolean;
+    is_mandatory: boolean;
+  }>;
 }
 
 // 菜单项类型

@@ -24,7 +24,8 @@ import {
   SettingOutlined,
   LogoutOutlined,
   BellOutlined,
-  QuestionCircleOutlined
+  QuestionCircleOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -59,6 +60,11 @@ export function Layout({ children }: LayoutProps) {
       key: '/organizations',
       icon: <ApartmentOutlined />,
       label: '组织架构',
+    },
+    {
+      key: '/doctypes',
+      icon: <DatabaseOutlined />,
+      label: 'DocType管理',
     },
     {
       key: '/settings',
@@ -125,17 +131,26 @@ export function Layout({ children }: LayoutProps) {
       '/roles': '角色管理',
       '/roles/list': '角色列表',
       '/roles/create': '创建角色',
-      '/roles/edit': '编辑角色', 
+      '/roles/edit': '编辑角色',
+      '/roles/permissions': '权限配置',
       '/permissions': '权限管理',
       '/organizations': '组织架构',
+      '/doctypes': 'DocType管理',
+      '/doctypes/list': 'DocType列表',
+      '/doctypes/create': '创建DocType',
+      '/doctypes/edit': '编辑DocType',
       '/settings': '系统设置',
       '/profile': '个人资料',
     };
 
     const pathSegments = location.pathname.split('/').filter(Boolean);
-    const breadcrumbItems = pathSegments.map((segment, index) => {
-      const path = '/' + pathSegments.slice(0, index + 1).join('/');
-      const isLast = index === pathSegments.length - 1;
+    
+    // 过滤掉数字ID参数，只保留有意义的路径段
+    const meaningfulSegments = pathSegments.filter(segment => !/^\d+$/.test(segment));
+    
+    const breadcrumbItems = meaningfulSegments.map((segment, index) => {
+      const path = '/' + meaningfulSegments.slice(0, index + 1).join('/');
+      const isLast = index === meaningfulSegments.length - 1;
       
       return {
         title: isLast ? pathMap[path] || segment : (
